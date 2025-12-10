@@ -1,0 +1,28 @@
+{
+  "name": "digitaltechnik-lernprogramm",
+  "version": "1.0.0",
+  "description": "Interaktives Lernprogramm für Digitaltechnik - BPI Mödling GINF",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "digitaltechnik",
+    "lernprogramm",
+    "education",
+    "logic-gates",
+    "ginf"
+  ],
+  "author": "BPI Mödling - GINF",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.7",
+    "pdfkit": "^0.14.0"
+  }
+}

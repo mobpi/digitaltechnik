@@ -1,0 +1,2902 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitaltechnik Lernprogramm - GINF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-light: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-bar {
+            width: 200px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            font-size: 0.85em;
+            margin-top: 3px;
+            text-align: right;
+        }
+        
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            padding: 20px;
+            border-right: 1px solid var(--bg-light);
+            overflow-y: auto;
+        }
+        .sidebar h3 {
+            color: var(--text-muted);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .module-list {
+            list-style: none;
+        }
+        .module-item {
+            margin-bottom: 8px;
+        }
+        .module-btn {
+            width: 100%;
+            padding: 12px 15px;
+            background: transparent;
+            border: 1px solid var(--bg-light);
+            border-radius: 8px;
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .module-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+        .module-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .module-btn.completed {
+            border-color: var(--secondary);
+        }
+        .module-btn.completed::after {
+            content: '✓';
+            margin-left: auto;
+            color: var(--secondary);
+        }
+        .module-icon {
+            font-size: 1.2em;
+        }
+        
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-width: 1000px;
+        }
+        
+        /* Screens */
+        .screen { display: none; }
+        .screen.active { display: block; }
+        
+        /* Welcome Screen */
+        .welcome-hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%);
+            border-radius: 20px;
+            margin-bottom: 40px;
+        }
+        .welcome-hero h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .welcome-hero p {
+            color: var(--text-muted);
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--bg-light);
+        }
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        .feature-card h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        /* Lesson Content */
+        .lesson-header {
+            margin-bottom: 30px;
+        }
+        .lesson-header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        .lesson-meta {
+            display: flex;
+            gap: 20px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--bg-light);
+        }
+        .section h2 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section p {
+            margin-bottom: 15px;
+        }
+        
+        /* Theory boxes */
+        .theory-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+        .theory-box h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .tip-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+        .tip-box::before {
+            content: '💡 ';
+        }
+        
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+        
+        /* Interactive Gate Simulator */
+        .gate-simulator {
+            background: var(--bg-dark);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .gate-select {
+            padding: 10px 20px;
+            background: var(--bg-light);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .sim-content {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .input-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .input-label {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary);
+            width: 30px;
+        }
+        .toggle-switch {
+            width: 60px;
+            height: 32px;
+            background: var(--bg-light);
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .toggle-switch.on {
+            background: var(--secondary);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.on::after {
+            transform: translateX(28px);
+        }
+        .input-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            width: 30px;
+        }
+        .input-value.on { color: var(--secondary); }
+        .input-value.off { color: var(--text-muted); }
+        
+        .gate-display {
+            width: 200px;
+            height: 150px;
+            position: relative;
+        }
+        
+        .output-display {
+            text-align: center;
+        }
+        .output-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 0 auto 10px;
+            transition: all 0.3s;
+        }
+        .output-circle.on {
+            background: var(--secondary);
+            box-shadow: 0 0 40px var(--secondary);
+            color: var(--bg-dark);
+        }
+        .output-circle.off {
+            background: var(--bg-light);
+            color: var(--text-muted);
+        }
+        .output-label {
+            font-size: 1.1em;
+            color: var(--text-muted);
+        }
+        
+        /* Truth Table */
+        .truth-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .truth-table th, .truth-table td {
+            padding: 12px 20px;
+            text-align: center;
+            border: 1px solid var(--bg-light);
+        }
+        .truth-table th {
+            background: var(--primary);
+        }
+        .truth-table th.output {
+            background: var(--secondary);
+        }
+        .truth-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+        .truth-table tr.highlight {
+            background: rgba(16, 185, 129, 0.2);
+        }
+        
+        /* Quiz */
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid var(--bg-light);
+        }
+        .quiz-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--bg-light);
+        }
+        .quiz-counter {
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+        .quiz-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .quiz-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-light);
+        }
+        .quiz-dot.current { background: var(--primary); }
+        .quiz-dot.correct { background: var(--secondary); }
+        .quiz-dot.wrong { background: var(--danger); }
+        
+        .quiz-question {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+        }
+        .quiz-question code {
+            background: var(--bg-dark);
+            padding: 3px 10px;
+            border-radius: 5px;
+            color: var(--accent);
+        }
+        
+        .quiz-options {
+            display: grid;
+            gap: 12px;
+        }
+        .quiz-option {
+            padding: 15px 20px;
+            background: var(--bg-dark);
+            border: 2px solid var(--bg-light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .quiz-option:hover:not(.disabled) {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .quiz-option.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+        .quiz-option.correct {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.2);
+        }
+        .quiz-option.wrong {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.2);
+        }
+        .quiz-option.disabled {
+            cursor: default;
+        }
+        
+        .quiz-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--secondary);
+        }
+        .quiz-feedback.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+        }
+        
+        .quiz-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text);
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Navigation */
+        .lesson-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--bg-light);
+        }
+        
+        /* Results Screen */
+        .results-card {
+            text-align: center;
+            padding: 50px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--bg-light);
+        }
+        .results-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+        .results-score {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .results-score.excellent { color: var(--secondary); }
+        .results-score.good { color: var(--accent); }
+        .results-score.needs-work { color: var(--danger); }
+        
+        .results-message {
+            font-size: 1.2em;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        
+        .results-details {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .result-stat {
+            text-align: center;
+        }
+        .result-stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .result-stat-label {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        /* Circuit Builder */
+        .circuit-challenge {
+            background: var(--bg-dark);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .challenge-goal {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .challenge-goal h4 {
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse { animation: pulse 2s infinite; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        
+        /* Wire styles for circuit diagrams */
+        .wire { stroke: #546e7a; stroke-width: 2.5; fill: none; transition: stroke 0.3s; }
+        .wire.active { stroke: #22c55e; }
+        .wire-a { stroke: #4fc3f7; }
+        .wire-a.active { stroke: #22c55e; }
+        .wire-b { stroke: #a855f7; }
+        .wire-b.active { stroke: #22c55e; }
+        .wire-c { stroke: #f59e0b; }
+        .wire-c.active { stroke: #22c55e; }
+        .wire-cin { stroke: #ef4444; }
+        .wire-cin.active { stroke: #22c55e; }
+        
+        .gate-body { fill: rgba(255,255,255,0.1); stroke-width: 2.5; }
+        .gate-and { stroke: #6366f1; }
+        .gate-or { stroke: #a855f7; }
+        .gate-not { stroke: #f472b6; }
+        .gate-nand { stroke: #fbbf24; }
+        .gate-xor { stroke: #22d3ee; }
+        .gate-nor { stroke: #c084fc; }
+        .gate-adder { stroke: #10b981; }
+        
+        .gate-label { fill: #fff; font-size: 10px; font-weight: bold; }
+        .node-label { fill: #94a3b8; font-size: 11px; }
+        .intermediate-value { fill: #fbbf24; font-size: 10px; font-weight: bold; }
+        
+        /* Complex circuit card */
+        .complex-circuit {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--bg-light);
+        }
+        .complex-circuit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .complex-circuit-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .circuit-formula {
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.4);
+            padding: 5px 12px;
+            border-radius: 6px;
+            color: #fbbf24;
+            font-size: 0.95em;
+        }
+        .circuit-layout {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .circuit-svg-container {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span>⚡</span>
+            <span>Digitaltechnik Lernprogramm</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 25px;">
+            <div id="studentNameDisplay" style="color: rgba(255,255,255,0.8); font-size: 0.95em;"></div>
+            <div class="progress-info" style="position: relative;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="progress-bar" style="cursor: pointer;" onclick="toggleProgressDetails()" title="Klicken für Details">
+                        <div class="progress-fill" id="globalProgress" style="width: 0%"></div>
+                    </div>
+                    <span id="quizCount" style="font-size: 0.8em; color: rgba(255,255,255,0.7);"></span>
+                </div>
+                <div class="progress-text"><span id="progressPercent">0</span>% Gesamtfortschritt</div>
+                <div id="progressDetails" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; background: var(--bg-card); border: 1px solid var(--bg-light); border-radius: 10px; padding: 15px; min-width: 250px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3);"></div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <nav class="sidebar">
+            <h3>📚 Module</h3>
+            <ul class="module-list" id="moduleList"></ul>
+        </nav>
+        
+        <main class="content" id="mainContent">
+            <!-- Screens werden per JavaScript eingefügt -->
+        </main>
+    </div>
+
+    <script>
+        // ============ DATA ============
+        const modules = [
+            {
+                id: 'welcome',
+                title: 'Start',
+                icon: '🏠',
+                type: 'welcome'
+            },
+            {
+                id: 'intro',
+                title: '1. Einführung',
+                icon: '📖',
+                type: 'lesson',
+                content: {
+                    title: 'Einführung in die Digitaltechnik',
+                    duration: '10 Min',
+                    sections: [
+                        {
+                            title: '📌 Was ist Digitaltechnik?',
+                            content: `
+                                <p>In der Digitaltechnik arbeiten wir mit <strong>binären Signalen</strong> – es gibt nur zwei Zustände:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li><strong>0</strong> (LOW, Aus, Falsch) – z.B. 0 Volt</li>
+                                    <li><strong>1</strong> (HIGH, An, Wahr) – z.B. 5 Volt</li>
+                                </ul>
+                                <div class="theory-box">
+                                    <h4>Warum nur 0 und 1?</h4>
+                                    <p>Binäre Signale sind robust gegen Störungen. Ein Transistor ist entweder an oder aus – es gibt keine "halb an" Zustände. Das macht digitale Schaltungen zuverlässig.</p>
+                                </div>
+                                <p>Aus diesen einfachen Bausteinen entstehen komplexe Systeme wie Computer, Smartphones und alle modernen elektronischen Geräte.</p>
+                            `
+                        },
+                        {
+                            title: '🔌 Logikgatter – Die Grundbausteine',
+                            content: `
+                                <p>Logikgatter sind elektronische Schaltungen, die logische Operationen ausführen. Sie verknüpfen Eingangssignale zu einem Ausgangssignal.</p>
+                                <p>Die wichtigsten Gatter sind:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li><strong>AND</strong> – Ausgang 1 nur wenn BEIDE Eingänge 1 sind</li>
+                                    <li><strong>OR</strong> – Ausgang 1 wenn MINDESTENS EIN Eingang 1 ist</li>
+                                    <li><strong>NOT</strong> – Invertiert den Eingang</li>
+                                </ul>
+                                <div class="tip-box">
+                                    Merkhilfe: AND ist wie "UND" – beide müssen stimmen. OR ist wie "ODER" – einer reicht.
+                                </div>
+                            `
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Wie viele Zustände kennt ein digitales Signal?',
+                            options: ['1', '2', '3', '10'],
+                            correct: 1,
+                            explanation: 'Digitale Signale kennen genau 2 Zustände: 0 und 1 (LOW und HIGH).'
+                        },
+                        {
+                            question: 'Was macht ein AND-Gatter?',
+                            options: [
+                                'Gibt 1 aus wenn mindestens ein Eingang 1 ist',
+                                'Gibt 1 aus wenn beide Eingänge 1 sind',
+                                'Invertiert den Eingang',
+                                'Gibt immer 1 aus'
+                            ],
+                            correct: 1,
+                            explanation: 'Ein AND-Gatter gibt nur dann 1 aus, wenn ALLE Eingänge 1 sind.'
+                        },
+                        {
+                            question: 'Welches Gatter invertiert ein Signal?',
+                            options: ['AND', 'OR', 'NOT', 'XOR'],
+                            correct: 2,
+                            explanation: 'Das NOT-Gatter (Inverter) dreht das Signal um: 0→1 und 1→0.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'basic-gates',
+                title: '2. Basis-Gatter',
+                icon: '🔲',
+                type: 'lesson',
+                content: {
+                    title: 'Die grundlegenden Logikgatter',
+                    duration: '15 Min',
+                    sections: [
+                        {
+                            title: '🔷 AND-Gatter (UND)',
+                            content: `
+                                <p>Das AND-Gatter gibt nur dann <strong>1</strong> aus, wenn <strong>ALLE</strong> Eingänge 1 sind.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = A · B</h4>
+                                    <p>Der Punkt (·) steht für die UND-Verknüpfung. Man liest: "Y ist gleich A und B".</p>
+                                </div>
+                                <p><strong>Alltagsbeispiel:</strong> Eine Tür öffnet sich nur, wenn Schlüsselkarte UND PIN-Code korrekt sind.</p>
+                            `,
+                            interactive: { type: 'gate', gate: 'AND' }
+                        },
+                        {
+                            title: '🔶 OR-Gatter (ODER)',
+                            content: `
+                                <p>Das OR-Gatter gibt <strong>1</strong> aus, wenn <strong>MINDESTENS EIN</strong> Eingang 1 ist.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = A + B</h4>
+                                    <p>Das Plus (+) steht für die ODER-Verknüpfung. Man liest: "Y ist gleich A oder B".</p>
+                                </div>
+                                <p><strong>Alltagsbeispiel:</strong> Die Innenbeleuchtung im Auto geht an, wenn Fahrertür ODER Beifahrertür geöffnet wird.</p>
+                            `,
+                            interactive: { type: 'gate', gate: 'OR' }
+                        },
+                        {
+                            title: '🔴 NOT-Gatter (NICHT/Inverter)',
+                            content: `
+                                <p>Das NOT-Gatter <strong>invertiert</strong> den Eingang: Aus 0 wird 1, aus 1 wird 0.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = Ā (oder Y = NOT A)</h4>
+                                    <p>Der Strich über dem Buchstaben bedeutet "NICHT".</p>
+                                </div>
+                                <p><strong>Alltagsbeispiel:</strong> Ein Kühlschrank-Licht: Wenn die Tür ZU ist (0), ist das Licht AUS (0). Wenn die Tür OFFEN ist (1)... Nein, warte – das wäre kein Inverter! 😄</p>
+                            `,
+                            interactive: { type: 'gate', gate: 'NOT' }
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'A=1, B=0. Was ist das Ergebnis von A AND B?',
+                            options: ['0', '1'],
+                            correct: 0,
+                            explanation: 'Bei AND müssen BEIDE Eingänge 1 sein. Da B=0 ist, ist das Ergebnis 0.'
+                        },
+                        {
+                            question: 'A=0, B=1. Was ist das Ergebnis von A OR B?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'Bei OR reicht EIN Eingang mit 1. Da B=1 ist, ist das Ergebnis 1.'
+                        },
+                        {
+                            question: 'A=1. Was ist NOT A?',
+                            options: ['0', '1'],
+                            correct: 0,
+                            explanation: 'NOT invertiert das Signal. Aus 1 wird 0.'
+                        },
+                        {
+                            question: 'A=1, B=1. Was ist A AND B?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'Beide Eingänge sind 1, also ist auch der Ausgang 1.'
+                        },
+                        {
+                            question: 'A=0, B=0. Was ist A OR B?',
+                            options: ['0', '1'],
+                            correct: 0,
+                            explanation: 'Bei OR muss mindestens ein Eingang 1 sein. Beide sind 0, also ist das Ergebnis 0.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'extended-gates',
+                title: '3. Erweiterte Gatter',
+                icon: '🔳',
+                type: 'lesson',
+                content: {
+                    title: 'NAND, NOR, XOR und XNOR',
+                    duration: '15 Min',
+                    sections: [
+                        {
+                            title: '⚫ NAND-Gatter (NOT AND)',
+                            content: `
+                                <p>NAND ist ein AND-Gatter gefolgt von einem NOT. Es gibt <strong>0</strong> aus nur wenn ALLE Eingänge 1 sind.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = NOT(A · B) = (A · B)̄</h4>
+                                    <p>NAND ist das <strong>universelle Gatter</strong> – man kann JEDE andere Logikfunktion nur mit NAND-Gattern bauen!</p>
+                                </div>
+                            `,
+                            interactive: { type: 'gate', gate: 'NAND' }
+                        },
+                        {
+                            title: '⚪ XOR-Gatter (Exklusiv-ODER)',
+                            content: `
+                                <p>XOR gibt <strong>1</strong> aus wenn die Eingänge <strong>UNTERSCHIEDLICH</strong> sind.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = A ⊕ B</h4>
+                                    <p>XOR ist perfekt für Vergleiche: "Sind A und B verschieden?"</p>
+                                </div>
+                                <p><strong>Alltagsbeispiel:</strong> Eine Treppenhausbeleuchtung mit zwei Schaltern – egal welchen du betätigst, das Licht wechselt seinen Zustand.</p>
+                            `,
+                            interactive: { type: 'gate', gate: 'XOR' }
+                        },
+                        {
+                            title: '🟣 NOR-Gatter (NOT OR)',
+                            content: `
+                                <p>NOR ist ein OR-Gatter gefolgt von NOT. Es gibt nur dann <strong>1</strong> aus wenn ALLE Eingänge 0 sind.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: Y = NOT(A + B)</h4>
+                                    <p>Auch NOR ist universell – frühe Computer wurden komplett mit NOR-Gattern gebaut!</p>
+                                </div>
+                            `,
+                            interactive: { type: 'gate', gate: 'NOR' }
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'A=1, B=1. Was ist A NAND B?',
+                            options: ['0', '1'],
+                            correct: 0,
+                            explanation: 'NAND = NOT(AND). A AND B = 1, NOT(1) = 0.'
+                        },
+                        {
+                            question: 'A=1, B=0. Was ist A XOR B?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'XOR gibt 1 wenn die Eingänge UNTERSCHIEDLICH sind. 1≠0, also 1.'
+                        },
+                        {
+                            question: 'A=1, B=1. Was ist A XOR B?',
+                            options: ['0', '1'],
+                            correct: 0,
+                            explanation: 'XOR gibt 1 nur bei unterschiedlichen Eingängen. 1=1, also 0.'
+                        },
+                        {
+                            question: 'Welches Gatter ist universell (kann alle anderen nachbauen)?',
+                            options: ['AND', 'OR', 'NAND', 'XOR'],
+                            correct: 2,
+                            explanation: 'NAND (und auch NOR) sind universelle Gatter. Man kann jede Logikfunktion nur damit aufbauen.'
+                        },
+                        {
+                            question: 'A=0, B=0. Was ist A NOR B?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'NOR = NOT(OR). A OR B = 0, NOT(0) = 1.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'truth-tables',
+                title: '4. Wahrheitstabellen',
+                icon: '📊',
+                type: 'lesson',
+                content: {
+                    title: 'Wahrheitstabellen verstehen & erstellen',
+                    duration: '12 Min',
+                    sections: [
+                        {
+                            title: '📋 Was ist eine Wahrheitstabelle?',
+                            content: `
+                                <p>Eine Wahrheitstabelle zeigt <strong>alle möglichen Eingangskombinationen</strong> und die zugehörigen Ausgänge.</p>
+                                <div class="theory-box">
+                                    <h4>Anzahl der Zeilen</h4>
+                                    <p>Bei <strong>n Eingängen</strong> gibt es <strong>2<sup>n</sup> Zeilen</strong>:</p>
+                                    <ul style="margin-top: 10px;">
+                                        <li>1 Eingang → 2¹ = 2 Zeilen</li>
+                                        <li>2 Eingänge → 2² = 4 Zeilen</li>
+                                        <li>3 Eingänge → 2³ = 8 Zeilen</li>
+                                    </ul>
+                                </div>
+                            `
+                        },
+                        {
+                            title: '🔢 Systematisches Ausfüllen',
+                            content: `
+                                <p>Fülle die Tabelle immer systematisch von oben nach unten:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li><strong>Letzte Spalte (B):</strong> 0, 1, 0, 1, 0, 1, ... (wechselt jede Zeile)</li>
+                                    <li><strong>Vorletzte Spalte (A):</strong> 0, 0, 1, 1, 0, 0, 1, 1, ... (wechselt alle 2 Zeilen)</li>
+                                    <li><strong>Davor (C):</strong> 0, 0, 0, 0, 1, 1, 1, 1, ... (wechselt alle 4 Zeilen)</li>
+                                </ul>
+                                <div class="tip-box">
+                                    Das entspricht dem binären Zählen: 00, 01, 10, 11 für 2 Eingänge.
+                                </div>
+                            `
+                        },
+                        {
+                            title: '🧮 Übung: Wahrheitstabelle erstellen',
+                            content: `
+                                <p>Erstelle die Wahrheitstabelle für <code>Y = (A AND B) OR C</code></p>
+                                <p>Schritte:</p>
+                                <ol style="margin: 15px 0 15px 30px;">
+                                    <li>Alle Eingangskombinationen auflisten (8 Zeilen für 3 Eingänge)</li>
+                                    <li>Für jede Zeile zuerst (A AND B) berechnen</li>
+                                    <li>Dann das Ergebnis mit C per OR verknüpfen</li>
+                                </ol>
+                            `,
+                            interactive: { type: 'truthTableBuilder' }
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Wie viele Zeilen hat die Wahrheitstabelle für 4 Eingänge?',
+                            options: ['4', '8', '16', '32'],
+                            correct: 2,
+                            explanation: '2⁴ = 16 Zeilen. Bei n Eingängen gibt es 2^n Kombinationen.'
+                        },
+                        {
+                            question: 'Mit welcher Eingangskombination beginnt eine Wahrheitstabelle üblicherweise?',
+                            options: ['Alle 1en', 'Alle 0en', 'Zufällig', 'Abwechselnd'],
+                            correct: 1,
+                            explanation: 'Standardmäßig beginnt man mit allen Eingängen auf 0.'
+                        },
+                        {
+                            question: 'Bei A=0, B=1, C=1: Was ist (A AND B) OR C?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'A AND B = 0 AND 1 = 0. Dann: 0 OR C = 0 OR 1 = 1.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'combined',
+                title: '5. Kombinierte Schaltungen',
+                icon: '🔗',
+                type: 'lesson',
+                content: {
+                    title: 'Schaltungen aus mehreren Gattern',
+                    duration: '15 Min',
+                    sections: [
+                        {
+                            title: '🏗️ Schaltungen analysieren',
+                            content: `
+                                <p>Bei kombinierten Schaltungen gehst du <strong>von innen nach außen</strong> vor:</p>
+                                <ol style="margin: 15px 0 15px 30px;">
+                                    <li>Identifiziere die Eingänge</li>
+                                    <li>Berechne die Ergebnisse der inneren Gatter</li>
+                                    <li>Verwende diese als Eingänge für die äußeren Gatter</li>
+                                    <li>Berechne bis zum finalen Ausgang</li>
+                                </ol>
+                                <div class="warning-box">
+                                    ⚠️ Achte auf die Reihenfolge! Erst Klammern, dann NOT, dann AND, dann OR.
+                                </div>
+                            `
+                        },
+                        {
+                            title: '🔧 Beispiel: Sicherheitsschaltung',
+                            content: `
+                                <p><strong>Formel:</strong> <code>STOPP = NotAus OR Überlast OR (NOT Tor)</code></p>
+                                <p>Das Förderband stoppt wenn:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li>Not-Aus gedrückt wird (NotAus = 1)</li>
+                                    <li>Überlast erkannt wird (Überlast = 1)</li>
+                                    <li>Das Sicherheitstor offen ist (Tor = 0, also NOT Tor = 1)</li>
+                                </ul>
+                                <div class="tip-box">
+                                    Die NOT-Verknüpfung bei "Tor" sorgt dafür, dass ein OFFENES Tor (0) zum Stopp führt!
+                                </div>
+                            `,
+                            interactive: { type: 'combinedCircuit', circuit: 'safety' }
+                        },
+                        {
+                            title: '⚖️ De Morgans Theorem',
+                            content: `
+                                <p>Ein fundamentales Gesetz der Booleschen Algebra:</p>
+                                <div class="theory-box">
+                                    <h4>De Morgans Regeln</h4>
+                                    <p><strong>Regel 1:</strong> NOT(A AND B) = (NOT A) OR (NOT B)</p>
+                                    <p><strong>Regel 2:</strong> NOT(A OR B) = (NOT A) AND (NOT B)</p>
+                                </div>
+                                <p>Mit diesen Regeln kannst du Schaltungen umformen und vereinfachen!</p>
+                            `
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'A=1, B=0, C=1. Was ist (A AND B) OR C?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'A AND B = 0. Dann: 0 OR 1 = 1.'
+                        },
+                        {
+                            question: 'Was ist NOT(A AND B) laut De Morgan gleich?',
+                            options: ['(NOT A) AND (NOT B)', '(NOT A) OR (NOT B)', 'A AND (NOT B)', 'NOT A'],
+                            correct: 1,
+                            explanation: 'De Morgans Regel: NOT(A AND B) = (NOT A) OR (NOT B)'
+                        },
+                        {
+                            question: 'A=0, B=1. Was ist (NOT A) AND B?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: 'NOT A = NOT 0 = 1. Dann: 1 AND 1 = 1.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'adders',
+                title: '6. Addierer',
+                icon: '➕',
+                type: 'lesson',
+                content: {
+                    title: 'Halbaddierer und Volladdierer',
+                    duration: '15 Min',
+                    sections: [
+                        {
+                            title: '➗ Binäre Addition',
+                            content: `
+                                <p>Computer rechnen im Binärsystem. Die Addition funktioniert wie im Dezimalsystem:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li>0 + 0 = 0</li>
+                                    <li>0 + 1 = 1</li>
+                                    <li>1 + 0 = 1</li>
+                                    <li>1 + 1 = 10 (binär!) = 0 mit Übertrag 1</li>
+                                </ul>
+                                <div class="tip-box">
+                                    1 + 1 = 10 binär bedeutet: Summenbit = 0, Übertrag (Carry) = 1
+                                </div>
+                            `
+                        },
+                        {
+                            title: '🔹 Halbaddierer (Half Adder)',
+                            content: `
+                                <p>Der Halbaddierer addiert <strong>zwei Bits</strong> und erzeugt:</p>
+                                <ul style="margin: 15px 0 15px 30px;">
+                                    <li><strong>S (Summe):</strong> Das Ergebnisbit → XOR-Gatter</li>
+                                    <li><strong>C (Carry):</strong> Der Übertrag → AND-Gatter</li>
+                                </ul>
+                                <div class="theory-box">
+                                    <h4>Formeln</h4>
+                                    <p>S = A XOR B</p>
+                                    <p>C = A AND B</p>
+                                </div>
+                            `,
+                            interactive: { type: 'gate', gate: 'HALFADDER' }
+                        },
+                        {
+                            title: '🔷 Volladdierer (Full Adder)',
+                            content: `
+                                <p>Der Volladdierer addiert <strong>drei Bits</strong>: A, B und einen eingehenden Übertrag (Cin).</p>
+                                <p>Er besteht aus zwei Halbaddierern und einem OR-Gatter.</p>
+                                <div class="theory-box">
+                                    <h4>Formeln</h4>
+                                    <p>S = A XOR B XOR Cin</p>
+                                    <p>Cout = (A AND B) OR (Cin AND (A XOR B))</p>
+                                </div>
+                                <p><strong>Anwendung:</strong> Verkettung zu Mehrbit-Addierern für echte Berechnungen!</p>
+                            `,
+                            interactive: { type: 'gate', gate: 'FULLADDER' }
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Was ist 1 + 1 im Binärsystem?',
+                            options: ['1', '2', '10', '11'],
+                            correct: 2,
+                            explanation: '1 + 1 = 10 (binär), das entspricht 2 dezimal.'
+                        },
+                        {
+                            question: 'Welches Gatter berechnet die Summe im Halbaddierer?',
+                            options: ['AND', 'OR', 'XOR', 'NAND'],
+                            correct: 2,
+                            explanation: 'XOR gibt 1 bei unterschiedlichen Eingängen – perfekt für die binäre Summe!'
+                        },
+                        {
+                            question: 'Welches Gatter berechnet den Übertrag (Carry)?',
+                            options: ['AND', 'OR', 'XOR', 'NOT'],
+                            correct: 0,
+                            explanation: 'AND gibt 1 nur wenn beide Eingänge 1 sind – genau dann entsteht ein Übertrag.'
+                        },
+                        {
+                            question: 'A=1, B=1, Cin=1. Was ist die Summe S des Volladdierers?',
+                            options: ['0', '1'],
+                            correct: 1,
+                            explanation: '1 XOR 1 XOR 1 = 0 XOR 1 = 1. Der Übertrag wäre auch 1 (Ergebnis: 11 binär = 3).'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'complex-circuits',
+                title: '7. Komplexe Schaltungen',
+                icon: '🔗',
+                type: 'lesson',
+                content: {
+                    title: 'Komplexe Schaltungen mit mehreren Gattern',
+                    duration: '20 Min',
+                    sections: [
+                        {
+                            title: '🏭 Förderband-Sicherheitsschaltung',
+                            content: `
+                                <p>Diese Schaltung zeigt eine typische industrielle Sicherheitsanwendung.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: STOPP = A OR B OR (NOT C)</h4>
+                                    <p>Das Förderband stoppt wenn:</p>
+                                    <ul style="margin-top: 10px;">
+                                        <li><strong>A = 1:</strong> Not-Aus gedrückt</li>
+                                        <li><strong>B = 1:</strong> Überlast erkannt</li>
+                                        <li><strong>C = 0:</strong> Sicherheitstor offen (NOT C = 1)</li>
+                                    </ul>
+                                </div>
+                                <div class="tip-box">
+                                    Das NOT-Gatter invertiert C, sodass ein <em>offenes</em> Tor (C=0) zum Stopp führt – eine "Fail-Safe" Logik!
+                                </div>
+                            `,
+                            interactive: { type: 'complexCircuit', circuit: 'safety' }
+                        },
+                        {
+                            title: '🔐 Zugangssteuerung',
+                            content: `
+                                <p>Eine verschachtelte Logik für Zugangskontrolle.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: X = (A AND B) OR (NOT C)</h4>
+                                    <p>Zugang gewährt wenn:</p>
+                                    <ul style="margin-top: 10px;">
+                                        <li><strong>A UND B:</strong> Beide Schlüssel vorhanden</li>
+                                        <li><strong>ODER NOT C:</strong> Wartungsmodus aktiv (C=0)</li>
+                                    </ul>
+                                </div>
+                            `,
+                            interactive: { type: 'complexCircuit', circuit: 'access' }
+                        },
+                        {
+                            title: '🚨 Alarmsystem',
+                            content: `
+                                <p>Ein Alarmsystem mit Scharfschaltung.</p>
+                                <div class="theory-box">
+                                    <h4>Formel: ALARM = (Tür OR Fenster) AND Scharf</h4>
+                                    <p>Alarm wird ausgelöst wenn:</p>
+                                    <ul style="margin-top: 10px;">
+                                        <li><strong>Tür ODER Fenster</strong> geöffnet wird</li>
+                                        <li><strong>UND</strong> die Anlage scharf geschaltet ist</li>
+                                    </ul>
+                                </div>
+                                <div class="tip-box">
+                                    Die AND-Verknüpfung mit "Scharf" sorgt dafür, dass nur bei aktivierter Anlage Alarm ausgelöst wird.
+                                </div>
+                            `,
+                            interactive: { type: 'complexCircuit', circuit: 'alarm' }
+                        },
+                        {
+                            title: '⚖️ De Morgans Theorem',
+                            content: `
+                                <p>Zwei Schaltungen, die das gleiche Ergebnis liefern:</p>
+                                <div class="theory-box">
+                                    <h4>De Morgans Regel 1</h4>
+                                    <p><strong>NOT(A AND B) = (NOT A) OR (NOT B)</strong></p>
+                                    <p style="margin-top: 10px;">Ein NAND-Gatter ist äquivalent zu zwei NOT-Gattern gefolgt von einem OR-Gatter.</p>
+                                </div>
+                                <p>Probiere verschiedene Eingangskombinationen aus und beobachte, dass X1 und X2 immer gleich sind!</p>
+                            `,
+                            interactive: { type: 'complexCircuit', circuit: 'demorgan' }
+                        }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Bei der Sicherheitsschaltung: Wann stoppt das Förderband NICHT?',
+                            options: ['A=0, B=0, C=1', 'A=1, B=0, C=1', 'A=0, B=0, C=0', 'A=0, B=1, C=1'],
+                            correct: 0,
+                            explanation: 'Nur bei A=0, B=0, C=1 ist STOPP = 0 OR 0 OR (NOT 1) = 0 OR 0 OR 0 = 0'
+                        },
+                        {
+                            question: 'Was besagt De Morgans erstes Theorem?',
+                            options: [
+                                'NOT(A OR B) = (NOT A) AND (NOT B)',
+                                'NOT(A AND B) = (NOT A) OR (NOT B)',
+                                'A AND B = A OR B',
+                                'NOT A = A'
+                            ],
+                            correct: 1,
+                            explanation: 'De Morgan 1: NOT(A AND B) = (NOT A) OR (NOT B)'
+                        },
+                        {
+                            question: 'Im Alarmsystem: A=1 (Tür offen), B=0 (Fenster zu), C=0 (nicht scharf). Gibt es Alarm?',
+                            options: ['Ja', 'Nein'],
+                            correct: 1,
+                            explanation: '(1 OR 0) AND 0 = 1 AND 0 = 0. Kein Alarm, da Anlage nicht scharf.'
+                        },
+                        {
+                            question: 'Welche Gatter-Kombination ist äquivalent zu NAND?',
+                            options: ['AND + NOT', 'OR + NOT', 'NOT + NOT + OR', 'NOT + NOT + AND'],
+                            correct: 2,
+                            explanation: 'Nach De Morgan: NOT(A AND B) = (NOT A) OR (NOT B) - also zwei NOT gefolgt von OR.'
+                        }
+                    ]
+                }
+            },
+            {
+                id: 'final-test',
+                title: '📝 Abschlusstest',
+                icon: '🏆',
+                type: 'test'
+            }
+        ];
+        
+        // Final Test Questions
+        const finalTestQuestions = [
+            { question: 'A=1, B=0. Was ist A AND B?', options: ['0', '1'], correct: 0 },
+            { question: 'A=0, B=1. Was ist A OR B?', options: ['0', '1'], correct: 1 },
+            { question: 'A=1. Was ist NOT A?', options: ['0', '1'], correct: 0 },
+            { question: 'A=1, B=1. Was ist A XOR B?', options: ['0', '1'], correct: 0 },
+            { question: 'A=0, B=0. Was ist A NAND B?', options: ['0', '1'], correct: 1 },
+            { question: 'Wie viele Zeilen hat eine Wahrheitstabelle mit 3 Eingängen?', options: ['4', '6', '8', '16'], correct: 2 },
+            { question: 'Was berechnet ein XOR-Gatter im Halbaddierer?', options: ['Übertrag', 'Summe', 'Beides', 'Nichts davon'], correct: 1 },
+            { question: 'A=1, B=0, C=1. Was ist (A OR B) AND C?', options: ['0', '1'], correct: 1 },
+            { question: 'Welches Gatter ist universell?', options: ['AND', 'XOR', 'NAND', 'NOT'], correct: 2 },
+            { question: 'Was ist NOT(0 OR 1)?', options: ['0', '1'], correct: 0 },
+            { question: 'Sicherheitsschaltung: A=0, B=0, C=1. Was ist A OR B OR (NOT C)?', options: ['0', '1'], correct: 0, explanation: '0 OR 0 OR (NOT 1) = 0 OR 0 OR 0 = 0' },
+            { question: 'Was besagt De Morgans erstes Theorem?', options: ['NOT(A AND B) = (NOT A) OR (NOT B)', 'NOT(A OR B) = (NOT A) OR (NOT B)', 'A AND B = A OR B', 'NOT A = A'], correct: 0 }
+        ];
+        
+        // ============ STATE ============
+        let state = {
+            currentModule: 'welcome',
+            completedModules: [],
+            quizScores: {},
+            currentQuizIndex: 0,
+            currentQuizAnswers: [],
+            shuffledQuestions: [], // Gemischte Fragen mit gemischten Antworten
+            gateStates: {}, // Separater State für jeden Simulator
+            studentName: '', // Name des Studenten
+            nameEntered: false // Ob der Name eingegeben wurde
+        };
+        
+        // Fisher-Yates Shuffle Algorithmus
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        
+        // Fragen und Antworten mischen
+        function shuffleQuestions(questions) {
+            // Kopiere und mische die Fragen
+            const shuffledQs = shuffleArray(questions).map(q => {
+                // Erstelle Antwort-Objekte mit Original-Index
+                const answersWithIndex = q.options.map((opt, idx) => ({
+                    text: opt,
+                    isCorrect: idx === q.correct
+                }));
+                
+                // Mische die Antworten
+                const shuffledAnswers = shuffleArray(answersWithIndex);
+                
+                // Finde neuen korrekten Index
+                const newCorrectIndex = shuffledAnswers.findIndex(a => a.isCorrect);
+                
+                return {
+                    question: q.question,
+                    options: shuffledAnswers.map(a => a.text),
+                    correct: newCorrectIndex,
+                    explanation: q.explanation || ''
+                };
+            });
+            
+            return shuffledQs;
+        }
+        
+        // Hole oder erstelle State für einen spezifischen Simulator
+        function getGateState(gateType) {
+            if (!state.gateStates[gateType]) {
+                state.gateStates[gateType] = { A: false, B: false, Cin: false };
+            }
+            return state.gateStates[gateType];
+        }
+        
+        // ============ GATE LOGIC ============
+        const gateLogic = {
+            AND: (a, b) => ({ Y: a && b }),
+            OR: (a, b) => ({ Y: a || b }),
+            NOT: (a) => ({ Y: !a }),
+            NAND: (a, b) => ({ Y: !(a && b) }),
+            NOR: (a, b) => ({ Y: !(a || b) }),
+            XOR: (a, b) => ({ Y: a !== b }),
+            HALFADDER: (a, b) => ({ S: a !== b, C: a && b }),
+            FULLADDER: (a, b, cin) => {
+                const s = (a !== b) !== cin;
+                const cout = (a && b) || (cin && (a !== b));
+                return { S: s, Cout: cout };
+            }
+        };
+        
+        // ============ RENDER FUNCTIONS ============
+        function renderSidebar() {
+            const list = document.getElementById('moduleList');
+            list.innerHTML = modules.map(m => {
+                const hasScore = state.quizScores[m.id] !== undefined;
+                const score = state.quizScores[m.id];
+                const passed = score >= 60;
+                
+                return `
+                <li class="module-item">
+                    <button class="module-btn ${state.currentModule === m.id || state.currentModule.startsWith(m.id) ? 'active' : ''} ${hasScore && passed ? 'completed' : ''}"
+                            onclick="navigateTo('${m.id}')">
+                        <span class="module-icon">${m.icon}</span>
+                        <span style="flex: 1;">${m.title}</span>
+                        ${hasScore ? `<span style="font-size: 0.8em; color: ${passed ? 'var(--secondary)' : 'var(--accent)'};">${score}%</span>` : ''}
+                    </button>
+                </li>
+            `}).join('');
+        }
+        
+        function renderWelcome() {
+            if (!state.nameEntered) {
+                // Namenseingabe-Screen
+                return `
+                    <div class="screen active fade-in" id="screen-welcome">
+                        <div class="welcome-hero">
+                            <h1>🔌 Digitaltechnik Lernprogramm</h1>
+                            <p>Lerne interaktiv die Grundlagen der digitalen Logik – von einfachen Gattern bis zu komplexen Schaltungen!</p>
+                            
+                            <div class="name-input-container" style="margin: 30px auto; max-width: 400px;">
+                                <label for="studentName" style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 1.1em;">
+                                    Bitte gib deinen Namen ein:
+                                </label>
+                                <input type="text" id="studentName" placeholder="Vor- und Nachname" 
+                                       style="width: 100%; padding: 15px 20px; font-size: 1.1em; border: 2px solid var(--bg-light); 
+                                              border-radius: 10px; background: var(--bg-dark); color: var(--text);
+                                              outline: none; transition: border-color 0.3s;"
+                                       onfocus="this.style.borderColor='var(--primary)'"
+                                       onblur="this.style.borderColor='var(--bg-light)'"
+                                       onkeypress="if(event.key === 'Enter') submitName()">
+                                <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-muted);">
+                                    Dein Name erscheint auf dem Zertifikat nach bestandenem Abschlusstest.
+                                </p>
+                            </div>
+                            
+                            <button class="start-btn pulse" onclick="submitName()">
+                                🚀 Lernprogramm starten
+                            </button>
+                        </div>
+                        
+                        <div class="features">
+                            <div class="feature-card">
+                                <div class="feature-icon">📖</div>
+                                <h3>6 Lektionen</h3>
+                                <p>Strukturierter Aufbau vom Einfachen zum Komplexen</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🎮</div>
+                                <h3>Interaktiv</h3>
+                                <p>Simuliere Gatter und Schaltungen selbst</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">✅</div>
+                                <h3>Quizze</h3>
+                                <p>Teste dein Wissen nach jeder Lektion</p>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🏆</div>
+                                <h3>Zertifikat</h3>
+                                <p>PDF-Zertifikat bei bestandenem Test!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Normaler Welcome-Screen nach Namenseingabe
+            return `
+                <div class="screen active fade-in" id="screen-welcome">
+                    <div class="welcome-hero">
+                        <h1>🔌 Willkommen, ${state.studentName}!</h1>
+                        <p>Lerne interaktiv die Grundlagen der digitalen Logik – von einfachen Gattern bis zu komplexen Schaltungen!</p>
+                        <button class="start-btn pulse" onclick="navigateTo('intro')">
+                            🚀 Jetzt starten
+                        </button>
+                    </div>
+                    
+                    <div class="features">
+                        <div class="feature-card">
+                            <div class="feature-icon">📖</div>
+                            <h3>6 Lektionen</h3>
+                            <p>Strukturierter Aufbau vom Einfachen zum Komplexen</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎮</div>
+                            <h3>Interaktiv</h3>
+                            <p>Simuliere Gatter und Schaltungen selbst</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">✅</div>
+                            <h3>Quizze</h3>
+                            <p>Teste dein Wissen nach jeder Lektion</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🏆</div>
+                            <h3>Zertifikat</h3>
+                            <p>PDF-Zertifikat bei bestandenem Test!</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderLesson(module) {
+            const content = module.content;
+            return `
+                <div class="screen active fade-in">
+                    <div class="lesson-header">
+                        <h1>${content.title}</h1>
+                        <div class="lesson-meta">
+                            <span>⏱️ ${content.duration}</span>
+                            <span>📚 ${content.sections.length} Abschnitte</span>
+                        </div>
+                    </div>
+                    
+                    ${content.sections.map((section, idx) => `
+                        <div class="section">
+                            <h2>${section.title}</h2>
+                            ${section.content}
+                            ${section.interactive ? renderInteractive(section.interactive) : ''}
+                        </div>
+                    `).join('')}
+                    
+                    <div class="section">
+                        <h2>📝 Wissenstest</h2>
+                        <p>Teste jetzt dein Verständnis mit einem kurzen Quiz!</p>
+                        <button class="btn btn-primary" onclick="startQuiz('${module.id}')" style="margin-top: 15px;">
+                            Quiz starten →
+                        </button>
+                    </div>
+                    
+                    <div class="lesson-nav">
+                        ${getPrevModule(module.id) ? `
+                            <button class="btn btn-secondary" onclick="navigateTo('${getPrevModule(module.id)}')">
+                                ← Zurück
+                            </button>
+                        ` : '<div></div>'}
+                        ${getNextModule(module.id) ? `
+                            <button class="btn btn-primary" onclick="navigateTo('${getNextModule(module.id)}')">
+                                Weiter →
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderInteractive(config) {
+            if (config.type === 'gate') {
+                return renderGateSimulator(config.gate);
+            }
+            if (config.type === 'complexCircuit') {
+                return renderComplexCircuit(config.circuit);
+            }
+            return '';
+        }
+        
+        // Komplexe Schaltungen Definition
+        const complexCircuits = {
+            safety: {
+                id: 'safety',
+                title: 'Förderband-Sicherheitsschaltung',
+                formula: 'X = A OR B OR (NOT C)',
+                inputs: ['A', 'B', 'C'],
+                inputLabels: ['Not-Aus', 'Überlast', 'Tor zu'],
+                compute: (inputs) => {
+                    const notC = !inputs.C;
+                    const orAB = inputs.A || inputs.B;
+                    return { X: inputs.A || inputs.B || notC, notC, orAB };
+                },
+                drawCircuit: (inputs, results) => {
+                    const active = (cond) => cond ? 'active' : '';
+                    return `
+                        <svg viewBox="0 0 450 160" width="450" height="160">
+                            <!-- Input A -->
+                            <text x="10" y="30" class="node-label">A</text>
+                            <line x1="25" y1="25" x2="100" y2="25" class="wire wire-a ${active(inputs.A)}"/>
+                            
+                            <!-- Input B -->
+                            <text x="10" y="65" class="node-label">B</text>
+                            <line x1="25" y1="60" x2="100" y2="60" class="wire wire-b ${active(inputs.B)}"/>
+                            
+                            <!-- First OR gate -->
+                            <path d="M100,10 Q115,42 100,75 Q140,75 165,42 Q140,10 100,10" class="gate-body gate-or"/>
+                            <text x="120" y="47" class="gate-label">OR</text>
+                            
+                            <!-- OR1 to OR2 -->
+                            <line x1="165" y1="42" x2="260" y2="60" class="wire ${active(results.orAB)}"/>
+                            <text x="200" y="38" class="intermediate-value">${results.orAB ? '1' : '0'}</text>
+                            
+                            <!-- Input C -->
+                            <text x="10" y="125" class="node-label">C</text>
+                            <line x1="25" y1="120" x2="80" y2="120" class="wire wire-c ${active(inputs.C)}"/>
+                            
+                            <!-- NOT gate -->
+                            <polygon points="80,100 80,140 120,120" class="gate-body gate-not"/>
+                            <circle cx="128" cy="120" r="6" class="gate-body gate-not" fill="none"/>
+                            <text x="88" y="125" class="gate-label">NOT</text>
+                            
+                            <!-- NOT to OR2 -->
+                            <line x1="134" y1="120" x2="260" y2="95" class="wire ${active(results.notC)}"/>
+                            <text x="180" y="135" class="intermediate-value">${results.notC ? '1' : '0'}</text>
+                            
+                            <!-- Second OR gate -->
+                            <path d="M260,45 Q275,77 260,110 Q300,110 325,77 Q300,45 260,45" class="gate-body gate-or"/>
+                            <text x="280" y="82" class="gate-label">OR</text>
+                            
+                            <!-- Output -->
+                            <line x1="325" y1="77" x2="420" y2="77" class="wire ${active(results.X)}"/>
+                            <text x="380" y="72" class="node-label">X (Stopp)</text>
+                            <circle cx="410" cy="77" r="12" fill="${results.X ? '#22c55e' : '#334155'}" ${results.X ? 'style="filter: drop-shadow(0 0 8px #22c55e)"' : ''}/>
+                            <text x="410" y="82" text-anchor="middle" fill="${results.X ? '#000' : '#fff'}" font-weight="bold">${results.X ? '1' : '0'}</text>
+                        </svg>
+                    `;
+                }
+            },
+            access: {
+                id: 'access',
+                title: 'Zugangssteuerung',
+                formula: 'X = (A AND B) OR (NOT C)',
+                inputs: ['A', 'B', 'C'],
+                inputLabels: ['Schlüssel 1', 'Schlüssel 2', 'Normal-Modus'],
+                compute: (inputs) => {
+                    const andAB = inputs.A && inputs.B;
+                    const notC = !inputs.C;
+                    return { X: andAB || notC, andAB, notC };
+                },
+                drawCircuit: (inputs, results) => {
+                    const active = (cond) => cond ? 'active' : '';
+                    return `
+                        <svg viewBox="0 0 450 160" width="450" height="160">
+                            <!-- Input A -->
+                            <text x="10" y="30" class="node-label">A</text>
+                            <line x1="25" y1="25" x2="100" y2="35" class="wire wire-a ${active(inputs.A)}"/>
+                            
+                            <!-- Input B -->
+                            <text x="10" y="65" class="node-label">B</text>
+                            <line x1="25" y1="60" x2="100" y2="50" class="wire wire-b ${active(inputs.B)}"/>
+                            
+                            <!-- AND gate -->
+                            <path d="M100,20 L100,65 L130,65 A22,22 0 0 0 130,20 Z" class="gate-body gate-and"/>
+                            <text x="108" y="47" class="gate-label">AND</text>
+                            
+                            <!-- AND to OR -->
+                            <line x1="152" y1="42" x2="260" y2="60" class="wire ${active(results.andAB)}"/>
+                            <text x="195" y="38" class="intermediate-value">${results.andAB ? '1' : '0'}</text>
+                            
+                            <!-- Input C -->
+                            <text x="10" y="125" class="node-label">C</text>
+                            <line x1="25" y1="120" x2="80" y2="120" class="wire wire-c ${active(inputs.C)}"/>
+                            
+                            <!-- NOT gate -->
+                            <polygon points="80,100 80,140 120,120" class="gate-body gate-not"/>
+                            <circle cx="128" cy="120" r="6" class="gate-body gate-not" fill="none"/>
+                            <text x="88" y="125" class="gate-label">NOT</text>
+                            
+                            <!-- NOT to OR -->
+                            <line x1="134" y1="120" x2="260" y2="95" class="wire ${active(results.notC)}"/>
+                            <text x="180" y="135" class="intermediate-value">${results.notC ? '1' : '0'}</text>
+                            
+                            <!-- OR gate -->
+                            <path d="M260,45 Q275,77 260,110 Q300,110 325,77 Q300,45 260,45" class="gate-body gate-or"/>
+                            <text x="280" y="82" class="gate-label">OR</text>
+                            
+                            <!-- Output -->
+                            <line x1="325" y1="77" x2="420" y2="77" class="wire ${active(results.X)}"/>
+                            <text x="370" y="72" class="node-label">X (Zugang)</text>
+                            <circle cx="410" cy="77" r="12" fill="${results.X ? '#22c55e' : '#334155'}" ${results.X ? 'style="filter: drop-shadow(0 0 8px #22c55e)"' : ''}/>
+                            <text x="410" y="82" text-anchor="middle" fill="${results.X ? '#000' : '#fff'}" font-weight="bold">${results.X ? '1' : '0'}</text>
+                        </svg>
+                    `;
+                }
+            },
+            alarm: {
+                id: 'alarm',
+                title: 'Alarmsystem',
+                formula: 'X = (A OR B) AND C',
+                inputs: ['A', 'B', 'C'],
+                inputLabels: ['Tür offen', 'Fenster offen', 'Anlage scharf'],
+                compute: (inputs) => {
+                    const orAB = inputs.A || inputs.B;
+                    return { X: orAB && inputs.C, orAB };
+                },
+                drawCircuit: (inputs, results) => {
+                    const active = (cond) => cond ? 'active' : '';
+                    return `
+                        <svg viewBox="0 0 450 140" width="450" height="140">
+                            <!-- Input A -->
+                            <text x="10" y="30" class="node-label">A</text>
+                            <line x1="25" y1="25" x2="100" y2="40" class="wire wire-a ${active(inputs.A)}"/>
+                            
+                            <!-- Input B -->
+                            <text x="10" y="75" class="node-label">B</text>
+                            <line x1="25" y1="70" x2="100" y2="55" class="wire wire-b ${active(inputs.B)}"/>
+                            
+                            <!-- OR gate -->
+                            <path d="M100,25 Q115,47 100,70 Q140,70 165,47 Q140,25 100,25" class="gate-body gate-or"/>
+                            <text x="120" y="52" class="gate-label">OR</text>
+                            
+                            <!-- OR to AND -->
+                            <line x1="165" y1="47" x2="260" y2="55" class="wire ${active(results.orAB)}"/>
+                            <text x="200" y="42" class="intermediate-value">${results.orAB ? '1' : '0'}</text>
+                            
+                            <!-- Input C -->
+                            <text x="10" y="115" class="node-label">C</text>
+                            <line x1="25" y1="110" x2="260" y2="80" class="wire wire-c ${active(inputs.C)}"/>
+                            
+                            <!-- AND gate -->
+                            <path d="M260,40 L260,95 L290,95 A27,27 0 0 0 290,40 Z" class="gate-body gate-and"/>
+                            <text x="268" y="72" class="gate-label">AND</text>
+                            
+                            <!-- Output -->
+                            <line x1="317" y1="67" x2="420" y2="67" class="wire ${active(results.X)}"/>
+                            <text x="360" y="62" class="node-label">X (Alarm)</text>
+                            <circle cx="410" cy="67" r="12" fill="${results.X ? '#ef4444' : '#334155'}" ${results.X ? 'style="filter: drop-shadow(0 0 8px #ef4444)"' : ''}/>
+                            <text x="410" y="72" text-anchor="middle" fill="${results.X ? '#fff' : '#fff'}" font-weight="bold">${results.X ? '1' : '0'}</text>
+                        </svg>
+                    `;
+                }
+            },
+            demorgan: {
+                id: 'demorgan',
+                title: 'De Morgans Theorem',
+                formula: 'NOT(A AND B) = (NOT A) OR (NOT B)',
+                inputs: ['A', 'B'],
+                inputLabels: ['Eingang A', 'Eingang B'],
+                compute: (inputs) => {
+                    const nand = !(inputs.A && inputs.B);
+                    const notA = !inputs.A;
+                    const notB = !inputs.B;
+                    const demorgan = notA || notB;
+                    return { X1: nand, X2: demorgan, notA, notB };
+                },
+                drawCircuit: (inputs, results) => {
+                    const active = (cond) => cond ? 'active' : '';
+                    return `
+                        <svg viewBox="0 0 420 200" width="420" height="200">
+                            <!-- Circuit 1: NAND -->
+                            <text x="10" y="18" class="node-label" font-weight="bold">Schaltung 1:</text>
+                            
+                            <!-- Input A top -->
+                            <text x="10" y="45" class="node-label">A</text>
+                            <line x1="25" y1="40" x2="90" y2="40" class="wire wire-a ${active(inputs.A)}"/>
+                            <line x1="90" y1="40" x2="90" y2="50" class="wire wire-a ${active(inputs.A)}"/>
+                            
+                            <!-- Input B top -->
+                            <text x="10" y="80" class="node-label">B</text>
+                            <line x1="25" y1="75" x2="90" y2="75" class="wire wire-b ${active(inputs.B)}"/>
+                            <line x1="90" y1="75" x2="90" y2="65" class="wire wire-b ${active(inputs.B)}"/>
+                            
+                            <!-- NAND gate -->
+                            <path d="M90,35 L90,80 L120,80 A22,22 0 0 0 120,35 Z" class="gate-body gate-nand"/>
+                            <circle cx="150" cy="57" r="6" class="gate-body gate-nand" fill="none"/>
+                            <text x="95" y="62" class="gate-label">NAND</text>
+                            
+                            <!-- Output X1 -->
+                            <line x1="156" y1="57" x2="220" y2="57" class="wire ${active(results.X1)}"/>
+                            <text x="195" y="52" class="node-label">X1</text>
+                            <circle cx="210" cy="57" r="10" fill="${results.X1 ? '#22c55e' : '#334155'}" ${results.X1 ? 'style="filter: drop-shadow(0 0 6px #22c55e)"' : ''}/>
+                            <text x="210" y="61" text-anchor="middle" fill="${results.X1 ? '#000' : '#fff'}" font-size="11" font-weight="bold">${results.X1 ? '1' : '0'}</text>
+                            
+                            <!-- Circuit 2: De Morgan -->
+                            <text x="10" y="115" class="node-label" font-weight="bold">Schaltung 2:</text>
+                            
+                            <!-- Input A bottom -->
+                            <text x="10" y="140" class="node-label">A</text>
+                            <line x1="25" y1="135" x2="60" y2="135" class="wire wire-a ${active(inputs.A)}"/>
+                            
+                            <!-- NOT A -->
+                            <polygon points="60,120 60,150 90,135" class="gate-body gate-not"/>
+                            <circle cx="96" cy="135" r="5" class="gate-body gate-not" fill="none"/>
+                            
+                            <!-- Input B bottom -->
+                            <text x="10" y="185" class="node-label">B</text>
+                            <line x1="25" y1="180" x2="60" y2="180" class="wire wire-b ${active(inputs.B)}"/>
+                            
+                            <!-- NOT B -->
+                            <polygon points="60,165 60,195 90,180" class="gate-body gate-not"/>
+                            <circle cx="96" cy="180" r="5" class="gate-body gate-not" fill="none"/>
+                            
+                            <!-- Wires to OR -->
+                            <line x1="101" y1="135" x2="140" y2="150" class="wire ${active(results.notA)}"/>
+                            <text x="108" y="130" class="intermediate-value">${results.notA ? '1' : '0'}</text>
+                            <line x1="101" y1="180" x2="140" y2="165" class="wire ${active(results.notB)}"/>
+                            <text x="108" y="195" class="intermediate-value">${results.notB ? '1' : '0'}</text>
+                            
+                            <!-- OR gate -->
+                            <path d="M140,135 Q155,157 140,180 Q175,180 195,157 Q175,135 140,135" class="gate-body gate-or"/>
+                            <text x="155" y="162" class="gate-label">OR</text>
+                            
+                            <!-- Output X2 -->
+                            <line x1="195" y1="157" x2="250" y2="157" class="wire ${active(results.X2)}"/>
+                            <text x="225" y="152" class="node-label">X2</text>
+                            <circle cx="240" cy="157" r="10" fill="${results.X2 ? '#22c55e' : '#334155'}" ${results.X2 ? 'style="filter: drop-shadow(0 0 6px #22c55e)"' : ''}/>
+                            <text x="240" y="161" text-anchor="middle" fill="${results.X2 ? '#000' : '#fff'}" font-size="11" font-weight="bold">${results.X2 ? '1' : '0'}</text>
+                            
+                            <!-- Equality box -->
+                            <rect x="280" y="85" width="120" height="50" rx="8" fill="${results.X1 === results.X2 ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}" stroke="${results.X1 === results.X2 ? '#22c55e' : '#ef4444'}" stroke-width="2"/>
+                            <text x="340" y="110" text-anchor="middle" fill="${results.X1 === results.X2 ? '#22c55e' : '#ef4444'}" font-size="16" font-weight="bold">
+                                X1 ${results.X1 === results.X2 ? '=' : '≠'} X2
+                            </text>
+                            <text x="340" y="128" text-anchor="middle" fill="#94a3b8" font-size="12">
+                                (${results.X1 ? '1' : '0'} ${results.X1 === results.X2 ? '=' : '≠'} ${results.X2 ? '1' : '0'})
+                            </text>
+                        </svg>
+                    `;
+                }
+            }
+        };
+        
+        // State für komplexe Schaltungen
+        function getComplexCircuitState(circuitId) {
+            const key = 'complex_' + circuitId;
+            if (!state.gateStates[key]) {
+                state.gateStates[key] = { A: false, B: false, C: false };
+            }
+            return state.gateStates[key];
+        }
+        
+        function toggleComplexInput(circuitId, input) {
+            const circuitState = getComplexCircuitState(circuitId);
+            circuitState[input] = !circuitState[input];
+            render();
+        }
+        
+        function renderComplexCircuit(circuitId) {
+            const circuit = complexCircuits[circuitId];
+            const circuitState = getComplexCircuitState(circuitId);
+            const inputs = {};
+            circuit.inputs.forEach(inp => inputs[inp] = circuitState[inp]);
+            const results = circuit.compute(inputs);
+            
+            return `
+                <div class="complex-circuit">
+                    <div class="complex-circuit-header">
+                        <div class="complex-circuit-title">${circuit.title}</div>
+                        <div class="circuit-formula">${circuit.formula}</div>
+                    </div>
+                    <div class="circuit-layout">
+                        <div class="input-controls" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                            <div style="color: var(--text-muted); font-size: 0.8em; margin-bottom: 10px; text-transform: uppercase;">Eingänge</div>
+                            ${circuit.inputs.map((inp, idx) => `
+                                <div class="input-row" style="margin-bottom: 8px;">
+                                    <span class="input-label">${inp}</span>
+                                    <div class="toggle-switch ${circuitState[inp] ? 'on' : ''}" onclick="toggleComplexInput('${circuitId}', '${inp}')"></div>
+                                    <span class="input-value ${circuitState[inp] ? 'on' : 'off'}">${circuitState[inp] ? 1 : 0}</span>
+                                </div>
+                                <div style="font-size: 0.75em; color: var(--text-muted); margin: -5px 0 8px 42px;">${circuit.inputLabels[idx]}</div>
+                            `).join('')}
+                        </div>
+                        <div class="circuit-svg-container">
+                            ${circuit.drawCircuit(inputs, results)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderGateSimulator(gateType) {
+            const gateState = getGateState(gateType);
+            const needsCin = gateType === 'FULLADDER';
+            const isUnary = gateType === 'NOT';
+            
+            return `
+                <div class="gate-simulator">
+                    <div class="sim-header">
+                        <strong>🎮 Interaktive Simulation: ${gateType}</strong>
+                    </div>
+                    <div class="sim-content">
+                        <div class="input-controls">
+                            <div class="input-row">
+                                <span class="input-label">A</span>
+                                <div class="toggle-switch ${gateState.A ? 'on' : ''}" onclick="toggleGateInput('A', '${gateType}')"></div>
+                                <span class="input-value ${gateState.A ? 'on' : 'off'}">${gateState.A ? 1 : 0}</span>
+                            </div>
+                            ${!isUnary ? `
+                                <div class="input-row">
+                                    <span class="input-label">B</span>
+                                    <div class="toggle-switch ${gateState.B ? 'on' : ''}" onclick="toggleGateInput('B', '${gateType}')"></div>
+                                    <span class="input-value ${gateState.B ? 'on' : 'off'}">${gateState.B ? 1 : 0}</span>
+                                </div>
+                            ` : ''}
+                            ${needsCin ? `
+                                <div class="input-row">
+                                    <span class="input-label">Cin</span>
+                                    <div class="toggle-switch ${gateState.Cin ? 'on' : ''}" onclick="toggleGateInput('Cin', '${gateType}')"></div>
+                                    <span class="input-value ${gateState.Cin ? 'on' : 'off'}">${gateState.Cin ? 1 : 0}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="gate-display">
+                            ${renderGateSVG(gateType)}
+                        </div>
+                        
+                        <div class="output-display">
+                            ${renderGateOutput(gateType)}
+                        </div>
+                    </div>
+                    ${renderTruthTable(gateType)}
+                </div>
+            `;
+        }
+        
+        function renderGateSVG(gateType) {
+            const gateState = getGateState(gateType);
+            const a = gateState.A;
+            const b = gateState.B;
+            const cin = gateState.Cin;
+            
+            // Berechne Ergebnis für aktive Leitungen
+            let result;
+            if (gateType === 'NOT') result = gateLogic.NOT(a);
+            else if (gateType === 'FULLADDER') result = gateLogic.FULLADDER(a, b, cin);
+            else if (gateType === 'HALFADDER') result = gateLogic.HALFADDER(a, b);
+            else result = gateLogic[gateType](a, b);
+            
+            const active = (cond) => cond ? 'active' : '';
+            
+            const svgs = {
+                AND: `<svg viewBox="0 0 180 100" width="220" height="120">
+                    <!-- Input A -->
+                    <text x="5" y="30" class="node-label">A</text>
+                    <line x1="20" y1="25" x2="60" y2="25" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="25" x2="60" y2="40" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="40" x2="70" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="80" class="node-label">B</text>
+                    <line x1="20" y1="75" x2="60" y2="75" class="wire wire-b ${active(b)}"/>
+                    <line x1="60" y1="75" x2="60" y2="60" class="wire wire-b ${active(b)}"/>
+                    <line x1="60" y1="60" x2="70" y2="60" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- AND Gate -->
+                    <path d="M70,25 L70,75 L100,75 A25,25 0 0 0 100,25 Z" class="gate-body gate-and"/>
+                    <text x="82" y="55" class="gate-label">AND</text>
+                    
+                    <!-- Output -->
+                    <line x1="125" y1="50" x2="170" y2="50" class="wire ${active(result.Y)}"/>
+                    <text x="155" y="45" class="node-label">Y</text>
+                </svg>`,
+                
+                OR: `<svg viewBox="0 0 180 100" width="220" height="120">
+                    <!-- Input A -->
+                    <text x="5" y="30" class="node-label">A</text>
+                    <line x1="20" y1="25" x2="75" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="80" class="node-label">B</text>
+                    <line x1="20" y1="75" x2="75" y2="60" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- OR Gate -->
+                    <path d="M70,25 Q85,50 70,75 Q110,75 135,50 Q110,25 70,25" class="gate-body gate-or"/>
+                    <text x="90" y="55" class="gate-label">OR</text>
+                    
+                    <!-- Output -->
+                    <line x1="135" y1="50" x2="170" y2="50" class="wire ${active(result.Y)}"/>
+                    <text x="155" y="45" class="node-label">Y</text>
+                </svg>`,
+                
+                NOT: `<svg viewBox="0 0 160 80" width="200" height="100">
+                    <!-- Input A -->
+                    <text x="5" y="45" class="node-label">A</text>
+                    <line x1="20" y1="40" x2="55" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- NOT Gate -->
+                    <polygon points="55,20 55,60 95,40" class="gate-body gate-not"/>
+                    <circle cx="102" cy="40" r="6" class="gate-body gate-not" fill="none"/>
+                    <text x="65" y="45" class="gate-label">NOT</text>
+                    
+                    <!-- Output -->
+                    <line x1="108" y1="40" x2="150" y2="40" class="wire ${active(result.Y)}"/>
+                    <text x="135" y="35" class="node-label">Y</text>
+                </svg>`,
+                
+                NAND: `<svg viewBox="0 0 190 100" width="230" height="120">
+                    <!-- Input A -->
+                    <text x="5" y="30" class="node-label">A</text>
+                    <line x1="20" y1="25" x2="60" y2="25" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="25" x2="60" y2="40" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="40" x2="70" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="80" class="node-label">B</text>
+                    <line x1="20" y1="75" x2="60" y2="75" class="wire wire-b ${active(b)}"/>
+                    <line x1="60" y1="75" x2="60" y2="60" class="wire wire-b ${active(b)}"/>
+                    <line x1="60" y1="60" x2="70" y2="60" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- NAND Gate -->
+                    <path d="M70,25 L70,75 L100,75 A25,25 0 0 0 100,25 Z" class="gate-body gate-nand"/>
+                    <circle cx="132" cy="50" r="6" class="gate-body gate-nand" fill="none"/>
+                    <text x="78" y="55" class="gate-label">NAND</text>
+                    
+                    <!-- Output -->
+                    <line x1="138" y1="50" x2="180" y2="50" class="wire ${active(result.Y)}"/>
+                    <text x="165" y="45" class="node-label">Y</text>
+                </svg>`,
+                
+                NOR: `<svg viewBox="0 0 190 100" width="230" height="120">
+                    <!-- Input A -->
+                    <text x="5" y="30" class="node-label">A</text>
+                    <line x1="20" y1="25" x2="75" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="80" class="node-label">B</text>
+                    <line x1="20" y1="75" x2="75" y2="60" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- NOR Gate -->
+                    <path d="M70,25 Q85,50 70,75 Q110,75 135,50 Q110,25 70,25" class="gate-body gate-nor"/>
+                    <circle cx="142" cy="50" r="6" class="gate-body gate-nor" fill="none"/>
+                    <text x="90" y="55" class="gate-label">NOR</text>
+                    
+                    <!-- Output -->
+                    <line x1="148" y1="50" x2="180" y2="50" class="wire ${active(result.Y)}"/>
+                    <text x="165" y="45" class="node-label">Y</text>
+                </svg>`,
+                
+                XOR: `<svg viewBox="0 0 180 100" width="220" height="120">
+                    <!-- Input A -->
+                    <text x="5" y="30" class="node-label">A</text>
+                    <line x1="20" y1="25" x2="80" y2="40" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="80" class="node-label">B</text>
+                    <line x1="20" y1="75" x2="80" y2="60" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- XOR Gate -->
+                    <path d="M65,25 Q80,50 65,75" fill="none" class="gate-xor" stroke-width="2.5"/>
+                    <path d="M70,25 Q85,50 70,75 Q110,75 135,50 Q110,25 70,25" class="gate-body gate-xor"/>
+                    <text x="90" y="55" class="gate-label">XOR</text>
+                    
+                    <!-- Output -->
+                    <line x1="135" y1="50" x2="170" y2="50" class="wire ${active(result.Y)}"/>
+                    <text x="155" y="45" class="node-label">Y</text>
+                </svg>`,
+                
+                HALFADDER: `<svg viewBox="0 0 280 120" width="320" height="140">
+                    <!-- Input A -->
+                    <text x="5" y="35" class="node-label">A</text>
+                    <line x1="20" y1="30" x2="60" y2="30" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="30" x2="60" y2="50" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="50" x2="90" y2="50" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="30" x2="60" y2="90" class="wire wire-a ${active(a)}"/>
+                    <line x1="60" y1="90" x2="90" y2="90" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="75" class="node-label">B</text>
+                    <line x1="20" y1="70" x2="40" y2="70" class="wire wire-b ${active(b)}"/>
+                    <line x1="40" y1="70" x2="40" y2="60" class="wire wire-b ${active(b)}"/>
+                    <line x1="40" y1="60" x2="90" y2="60" class="wire wire-b ${active(b)}"/>
+                    <line x1="40" y1="70" x2="40" y2="100" class="wire wire-b ${active(b)}"/>
+                    <line x1="40" y1="100" x2="90" y2="100" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- XOR Gate for Sum -->
+                    <path d="M85,40 Q100,55 85,70" fill="none" stroke="#22d3ee" stroke-width="2"/>
+                    <path d="M90,40 Q105,55 90,70 Q120,70 140,55 Q120,40 90,40" class="gate-body gate-xor"/>
+                    <text x="105" y="60" class="gate-label">XOR</text>
+                    
+                    <!-- AND Gate for Carry -->
+                    <path d="M90,80 L90,110 L115,110 A15,15 0 0 0 115,80 Z" class="gate-body gate-and"/>
+                    <text x="95" y="100" class="gate-label">AND</text>
+                    
+                    <!-- Output S -->
+                    <line x1="140" y1="55" x2="200" y2="55" class="wire ${active(result.S)}"/>
+                    <text x="210" y="60" class="node-label">S</text>
+                    <text x="230" y="60" class="intermediate-value">${result.S ? '1' : '0'}</text>
+                    
+                    <!-- Output C -->
+                    <line x1="130" y1="95" x2="200" y2="95" class="wire ${active(result.C)}"/>
+                    <text x="210" y="100" class="node-label">C</text>
+                    <text x="230" y="100" class="intermediate-value">${result.C ? '1' : '0'}</text>
+                </svg>`,
+                
+                FULLADDER: `<svg viewBox="0 0 320 140" width="360" height="160">
+                    <!-- Input A -->
+                    <text x="5" y="25" class="node-label">A</text>
+                    <line x1="20" y1="20" x2="70" y2="20" class="wire wire-a ${active(a)}"/>
+                    <line x1="70" y1="20" x2="70" y2="35" class="wire wire-a ${active(a)}"/>
+                    
+                    <!-- Input B -->
+                    <text x="5" y="55" class="node-label">B</text>
+                    <line x1="20" y1="50" x2="70" y2="50" class="wire wire-b ${active(b)}"/>
+                    <line x1="70" y1="50" x2="70" y2="45" class="wire wire-b ${active(b)}"/>
+                    
+                    <!-- Input Cin -->
+                    <text x="5" y="105" class="node-label">Cin</text>
+                    <line x1="25" y1="100" x2="140" y2="100" class="wire wire-cin ${active(cin)}"/>
+                    <line x1="140" y1="100" x2="140" y2="85" class="wire wire-cin ${active(cin)}"/>
+                    
+                    <!-- Half Adder 1 -->
+                    <rect x="70" y="25" width="50" height="30" rx="4" class="gate-body gate-adder"/>
+                    <text x="78" y="45" class="gate-label">HA1</text>
+                    
+                    <!-- HA1 outputs -->
+                    <line x1="120" y1="35" x2="140" y2="35" class="wire ${active(a !== b)}"/>
+                    <line x1="140" y1="35" x2="140" y2="65" class="wire ${active(a !== b)}"/>
+                    <line x1="120" y1="45" x2="130" y2="45" class="wire ${active(a && b)}"/>
+                    <line x1="130" y1="45" x2="130" y2="120" class="wire ${active(a && b)}"/>
+                    <line x1="130" y1="120" x2="230" y2="120" class="wire ${active(a && b)}"/>
+                    
+                    <!-- Half Adder 2 -->
+                    <rect x="140" y="55" width="50" height="30" rx="4" class="gate-body gate-adder"/>
+                    <text x="148" y="75" class="gate-label">HA2</text>
+                    
+                    <!-- HA2 outputs -->
+                    <line x1="190" y1="65" x2="280" y2="65" class="wire ${active(result.S)}"/>
+                    <text x="250" y="60" class="node-label">S</text>
+                    <text x="270" y="60" class="intermediate-value">${result.S ? '1' : '0'}</text>
+                    
+                    <line x1="190" y1="75" x2="200" y2="75" class="wire ${active(cin && (a !== b))}"/>
+                    <line x1="200" y1="75" x2="200" y2="110" class="wire ${active(cin && (a !== b))}"/>
+                    <line x1="200" y1="110" x2="230" y2="110" class="wire ${active(cin && (a !== b))}"/>
+                    
+                    <!-- OR Gate for Cout -->
+                    <path d="M230,105 Q240,115 230,125 Q255,125 270,115 Q255,105 230,105" class="gate-body gate-or"/>
+                    <text x="242" y="118" class="gate-label" style="font-size:8px">OR</text>
+                    
+                    <!-- Output Cout -->
+                    <line x1="270" y1="115" x2="300" y2="115" class="wire ${active(result.Cout)}"/>
+                    <text x="280" y="132" class="node-label">Cout</text>
+                    <text x="295" y="110" class="intermediate-value">${result.Cout ? '1' : '0'}</text>
+                </svg>`
+            };
+            return svgs[gateType] || '';
+        }
+        
+        function renderGateOutput(gateType) {
+            const gateState = getGateState(gateType);
+            const a = gateState.A;
+            const b = gateState.B;
+            const cin = gateState.Cin;
+            
+            let result;
+            if (gateType === 'NOT') {
+                result = gateLogic.NOT(a);
+            } else if (gateType === 'FULLADDER') {
+                result = gateLogic.FULLADDER(a, b, cin);
+            } else if (gateType === 'HALFADDER') {
+                result = gateLogic.HALFADDER(a, b);
+            } else {
+                result = gateLogic[gateType](a, b);
+            }
+            
+            if (gateType === 'HALFADDER' || gateType === 'FULLADDER') {
+                const cout = gateType === 'FULLADDER' ? result.Cout : result.C;
+                return `
+                    <div style="display: flex; gap: 20px;">
+                        <div>
+                            <div class="output-circle ${result.S ? 'on' : 'off'}">${result.S ? 1 : 0}</div>
+                            <div class="output-label">S (Summe)</div>
+                        </div>
+                        <div>
+                            <div class="output-circle ${cout ? 'on' : 'off'}">${cout ? 1 : 0}</div>
+                            <div class="output-label">${gateType === 'FULLADDER' ? 'Cout' : 'C'} (Carry)</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="output-circle ${result.Y ? 'on' : 'off'}">${result.Y ? 1 : 0}</div>
+                <div class="output-label">Y (Ausgang)</div>
+            `;
+        }
+        
+        function renderTruthTable(gateType) {
+            const gateState = getGateState(gateType);
+            const isUnary = gateType === 'NOT';
+            const isAdder = gateType === 'HALFADDER' || gateType === 'FULLADDER';
+            const needsCin = gateType === 'FULLADDER';
+            
+            let rows = [];
+            if (isUnary) {
+                rows = [[0], [1]];
+            } else if (needsCin) {
+                for (let a = 0; a <= 1; a++)
+                    for (let b = 0; b <= 1; b++)
+                        for (let c = 0; c <= 1; c++)
+                            rows.push([a, b, c]);
+            } else {
+                for (let a = 0; a <= 1; a++)
+                    for (let b = 0; b <= 1; b++)
+                        rows.push([a, b]);
+            }
+            
+            const currentRow = needsCin 
+                ? rows.findIndex(r => r[0] === +gateState.A && r[1] === +gateState.B && r[2] === +gateState.Cin)
+                : isUnary 
+                    ? rows.findIndex(r => r[0] === +gateState.A)
+                    : rows.findIndex(r => r[0] === +gateState.A && r[1] === +gateState.B);
+            
+            return `
+                <table class="truth-table" style="margin-top: 20px;">
+                    <tr>
+                        <th>A</th>
+                        ${!isUnary ? '<th>B</th>' : ''}
+                        ${needsCin ? '<th>Cin</th>' : ''}
+                        ${isAdder ? '<th class="output">S</th><th class="output">' + (needsCin ? 'Cout' : 'C') + '</th>' : '<th class="output">Y</th>'}
+                    </tr>
+                    ${rows.map((row, idx) => {
+                        let result;
+                        if (isUnary) result = gateLogic.NOT(!!row[0]);
+                        else if (needsCin) result = gateLogic.FULLADDER(!!row[0], !!row[1], !!row[2]);
+                        else if (isAdder) result = gateLogic.HALFADDER(!!row[0], !!row[1]);
+                        else result = gateLogic[gateType](!!row[0], !!row[1]);
+                        
+                        return `<tr class="${idx === currentRow ? 'highlight' : ''}">
+                            <td>${row[0]}</td>
+                            ${!isUnary ? `<td>${row[1]}</td>` : ''}
+                            ${needsCin ? `<td>${row[2]}</td>` : ''}
+                            ${isAdder 
+                                ? `<td>${result.S ? 1 : 0}</td><td>${(needsCin ? result.Cout : result.C) ? 1 : 0}</td>`
+                                : `<td>${result.Y ? 1 : 0}</td>`
+                            }
+                        </tr>`;
+                    }).join('')}
+                </table>
+            `;
+        }
+        
+        function renderQuiz(moduleId) {
+            const questions = state.shuffledQuestions;
+            const q = questions[state.currentQuizIndex];
+            const answered = state.currentQuizAnswers[state.currentQuizIndex] !== undefined;
+            const selectedAnswer = state.currentQuizAnswers[state.currentQuizIndex];
+            const isCorrect = selectedAnswer === q.correct;
+            
+            return `
+                <div class="screen active fade-in">
+                    <div class="quiz-container">
+                        <div class="quiz-progress">
+                            <span class="quiz-counter">Frage ${state.currentQuizIndex + 1} von ${questions.length}</span>
+                            <div class="quiz-dots">
+                                ${questions.map((question, idx) => {
+                                    let cls = '';
+                                    if (idx === state.currentQuizIndex) cls = 'current';
+                                    else if (state.currentQuizAnswers[idx] !== undefined) {
+                                        cls = state.currentQuizAnswers[idx] === question.correct ? 'correct' : 'wrong';
+                                    }
+                                    return `<div class="quiz-dot ${cls}"></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="quiz-question">${q.question}</div>
+                        
+                        <div class="quiz-options">
+                            ${q.options.map((opt, idx) => {
+                                let cls = answered ? 'disabled' : '';
+                                if (answered && idx === q.correct) cls += ' correct';
+                                else if (answered && idx === selectedAnswer && idx !== q.correct) cls += ' wrong';
+                                else if (!answered && idx === selectedAnswer) cls += ' selected';
+                                return `<div class="quiz-option ${cls}" onclick="selectAnswer(${idx}, '${moduleId}')">${opt}</div>`;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="quiz-feedback ${answered ? 'show' : ''} ${answered ? (isCorrect ? 'correct' : 'wrong') : ''}">
+                            ${answered ? (isCorrect 
+                                ? '✅ Richtig!' 
+                                : `❌ Leider falsch. ${q.explanation || ''}`) 
+                            : ''}
+                        </div>
+                        
+                        <div class="quiz-buttons">
+                            ${answered && state.currentQuizIndex < questions.length - 1 
+                                ? `<button class="btn btn-primary" onclick="nextQuestion('${moduleId}')">Nächste Frage →</button>`
+                                : ''
+                            }
+                            ${answered && state.currentQuizIndex === questions.length - 1 
+                                ? `<button class="btn btn-success" onclick="finishQuiz('${moduleId}')">Quiz beenden</button>`
+                                : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderResults(moduleId) {
+            const questions = state.shuffledQuestions;
+            const correct = state.currentQuizAnswers.filter((a, idx) => a === questions[idx].correct).length;
+            const total = questions.length;
+            const percent = Math.round((correct / total) * 100);
+            
+            let icon, scoreClass, message;
+            if (percent >= 80) {
+                icon = '🎉'; scoreClass = 'excellent'; message = 'Ausgezeichnet! Du hast das Thema verstanden!';
+            } else if (percent >= 60) {
+                icon = '👍'; scoreClass = 'good'; message = 'Gut gemacht! Ein paar Punkte könntest du noch vertiefen.';
+            } else {
+                icon = '📚'; scoreClass = 'needs-work'; message = 'Schau dir die Lektion nochmal an und versuche es erneut!';
+            }
+            
+            const isFinalTest = moduleId === 'final-test';
+            const passed = percent >= 60;
+            
+            return `
+                <div class="screen active fade-in">
+                    <div class="results-card">
+                        <div class="results-icon">${icon}</div>
+                        <div class="results-score ${scoreClass}">${percent}%</div>
+                        <div class="results-message">${message}</div>
+                        
+                        <div class="results-details">
+                            <div class="result-stat">
+                                <div class="result-stat-value" style="color: var(--secondary)">${correct}</div>
+                                <div class="result-stat-label">Richtig</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value" style="color: var(--danger)">${total - correct}</div>
+                                <div class="result-stat-label">Falsch</div>
+                            </div>
+                            <div class="result-stat">
+                                <div class="result-stat-value">${total}</div>
+                                <div class="result-stat-label">Gesamt</div>
+                            </div>
+                        </div>
+                        
+                        ${isFinalTest && passed ? `
+                            <div class="certificate-section" style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--secondary); border-radius: 15px; padding: 25px; margin: 25px 0;">
+                                <h3 style="color: var(--secondary); margin-bottom: 15px;">🏆 Herzlichen Glückwunsch, ${state.studentName}!</h3>
+                                <p style="margin-bottom: 20px; color: var(--text-muted);">Du hast den Abschlusstest bestanden! Lade dein Zertifikat herunter und sende es zur Bestätigung ein.</p>
+                                
+                                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                                    <button class="btn btn-success" onclick="generateCertificate(${percent}, ${correct}, ${total})" style="font-size: 1.1em; padding: 15px 25px;">
+                                        📄 Zertifikat herunterladen (PDF)
+                                    </button>
+                                    <button class="btn btn-primary" onclick="generateCertificate(${percent}, ${correct}, ${total}); sendCertificateWithFallback(${percent}, ${correct}, ${total});" style="font-size: 1.1em; padding: 15px 25px;">
+                                        📧 Zertifikat per E-Mail senden
+                                    </button>
+                                </div>
+                                
+                                <p style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
+                                    💡 Der E-Mail-Versand erfolgt automatisch über den Server. Falls der Server nicht erreichbar ist, wird das E-Mail-Programm geöffnet.
+                                </p>
+                            </div>
+                        ` : ''}
+                        
+                        ${isFinalTest && !passed ? `
+                            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 10px; padding: 20px; margin: 20px 0;">
+                                <p style="color: var(--danger);">⚠️ Du benötigst mindestens 60% um das Zertifikat zu erhalten.</p>
+                                <p style="color: var(--text-muted); margin-top: 10px;">Wiederhole die Lektionen und versuche den Test erneut!</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                            ${!isFinalTest ? `
+                                <button class="btn btn-secondary" onclick="navigateTo('${moduleId}')">Lektion wiederholen</button>
+                                ${getNextModule(moduleId) ? `
+                                    <button class="btn btn-primary" onclick="navigateTo('${getNextModule(moduleId)}')">Weiter zur nächsten Lektion →</button>
+                                ` : ''}
+                            ` : `
+                                <button class="btn btn-secondary" onclick="navigateTo('welcome')">Zum Start</button>
+                                ${!passed ? `<button class="btn btn-primary" onclick="navigateTo('final-test')">Test wiederholen</button>` : ''}
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderFinalTest() {
+            return `
+                <div class="screen active fade-in">
+                    <div class="lesson-header">
+                        <h1>🏆 Abschlusstest</h1>
+                        <div class="lesson-meta">
+                            <span>📝 ${finalTestQuestions.length} Fragen</span>
+                            <span>⏱️ ca. 10 Minuten</span>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h2>Bereit für den Test?</h2>
+                        <p>Der Abschlusstest prüft dein Wissen über alle Lektionen. Du musst mindestens 60% erreichen, um zu bestehen.</p>
+                        <p>Themen:</p>
+                        <ul style="margin: 15px 0 15px 30px;">
+                            <li>Basis-Gatter (AND, OR, NOT)</li>
+                            <li>Erweiterte Gatter (NAND, XOR, NOR)</li>
+                            <li>Wahrheitstabellen</li>
+                            <li>Kombinierte Schaltungen</li>
+                            <li>Addierer</li>
+                        </ul>
+                        <button class="btn btn-success" onclick="startQuiz('final-test')" style="margin-top: 20px; font-size: 1.1em; padding: 15px 30px;">
+                            🚀 Test starten
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ============ NAVIGATION & LOGIC ============
+        function navigateTo(moduleId) {
+            state.currentModule = moduleId;
+            state.currentQuizIndex = 0;
+            state.currentQuizAnswers = [];
+            // gateStates bleiben erhalten für bessere UX
+            render();
+        }
+        
+        function getPrevModule(currentId) {
+            const idx = modules.findIndex(m => m.id === currentId);
+            if (idx > 1) return modules[idx - 1].id;
+            return null;
+        }
+        
+        function getNextModule(currentId) {
+            const idx = modules.findIndex(m => m.id === currentId);
+            if (idx < modules.length - 1) return modules[idx + 1].id;
+            return null;
+        }
+        
+        function toggleGateInput(input, gateType) {
+            const gateState = getGateState(gateType);
+            gateState[input] = !gateState[input];
+            render();
+        }
+        
+        function startQuiz(moduleId) {
+            // Original-Fragen holen
+            const module = modules.find(m => m.id === moduleId);
+            const originalQuestions = moduleId === 'final-test' ? finalTestQuestions : module.content.quiz;
+            
+            // Fragen und Antworten mischen
+            state.shuffledQuestions = shuffleQuestions(originalQuestions);
+            state.currentQuizIndex = 0;
+            state.currentQuizAnswers = [];
+            state.currentModule = moduleId + '-quiz';
+            render();
+        }
+        
+        function selectAnswer(answerIdx, moduleId) {
+            if (state.currentQuizAnswers[state.currentQuizIndex] !== undefined) return;
+            state.currentQuizAnswers[state.currentQuizIndex] = answerIdx;
+            render();
+        }
+        
+        function nextQuestion(moduleId) {
+            state.currentQuizIndex++;
+            render();
+        }
+        
+        function finishQuiz(moduleId) {
+            const realModuleId = moduleId.replace('-quiz', '');
+            const questions = state.shuffledQuestions;
+            const correct = state.currentQuizAnswers.filter((a, idx) => a === questions[idx].correct).length;
+            const percent = Math.round((correct / questions.length) * 100);
+            
+            state.quizScores[realModuleId] = percent;
+            if (percent >= 60 && !state.completedModules.includes(realModuleId)) {
+                state.completedModules.push(realModuleId);
+            }
+            
+            state.currentModule = moduleId + '-results';
+            render();
+        }
+        
+        function toggleProgressDetails() {
+            const details = document.getElementById('progressDetails');
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                updateProgressDetails();
+            } else {
+                details.style.display = 'none';
+            }
+        }
+        
+        function updateProgressDetails() {
+            const details = document.getElementById('progressDetails');
+            if (!details) return;
+            
+            const lessonModules = modules.filter(m => m.type === 'lesson');
+            
+            let html = '<div style="font-weight: bold; margin-bottom: 10px; color: var(--primary);">📊 Quiz-Ergebnisse</div>';
+            
+            lessonModules.forEach(m => {
+                const hasScore = state.quizScores[m.id] !== undefined;
+                const score = state.quizScores[m.id];
+                const passed = hasScore && score >= 60;
+                
+                html += `<div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--bg-light);">
+                    <span>${m.icon} ${m.title}</span>
+                    <span style="color: ${hasScore ? (passed ? 'var(--secondary)' : 'var(--accent)') : 'var(--text-muted)'};">
+                        ${hasScore ? score + '%' : '—'}
+                    </span>
+                </div>`;
+            });
+            
+            // Abschlusstest
+            const finalScore = state.quizScores['final-test'];
+            const hasFinal = finalScore !== undefined;
+            html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; margin-top: 5px; font-weight: bold;">
+                <span>🏆 Abschlusstest</span>
+                <span style="color: ${hasFinal ? (finalScore >= 60 ? 'var(--secondary)' : 'var(--danger)') : 'var(--text-muted)'};">
+                    ${hasFinal ? finalScore + '%' : '—'}
+                </span>
+            </div>`;
+            
+            details.innerHTML = html;
+        }
+        
+        function updateProgress() {
+            // Berechne Gesamtfortschritt basierend auf allen Quiz-Ergebnissen
+            const lessonModules = modules.filter(m => m.type === 'lesson');
+            const totalModules = lessonModules.length + 1; // +1 für Abschlusstest
+            
+            // Summiere alle Quiz-Scores
+            let totalScore = 0;
+            let completedQuizzes = 0;
+            
+            lessonModules.forEach(m => {
+                if (state.quizScores[m.id] !== undefined) {
+                    totalScore += state.quizScores[m.id];
+                    completedQuizzes++;
+                }
+            });
+            
+            // Abschlusstest hinzufügen falls vorhanden
+            if (state.quizScores['final-test'] !== undefined) {
+                totalScore += state.quizScores['final-test'];
+                completedQuizzes++;
+            }
+            
+            // Fortschritt berechnen: Kombination aus Anzahl und Ergebnis
+            let percent = 0;
+            if (completedQuizzes > 0) {
+                // Gewichtung: 50% für Abschluss der Quizze, 50% für durchschnittliche Punktzahl
+                const completionPercent = (completedQuizzes / totalModules) * 100;
+                const avgScore = totalScore / completedQuizzes;
+                percent = Math.round((completionPercent * 0.5) + (avgScore * 0.5 * (completedQuizzes / totalModules)));
+            }
+            
+            document.getElementById('globalProgress').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = percent;
+            
+            // Quiz-Zähler aktualisieren
+            const quizCount = document.getElementById('quizCount');
+            if (quizCount) {
+                quizCount.textContent = `(${completedQuizzes}/${totalModules} Quizze)`;
+            }
+            
+            // Studentennamen im Header anzeigen
+            const nameDisplay = document.getElementById('studentNameDisplay');
+            if (nameDisplay) {
+                nameDisplay.textContent = state.nameEntered ? `👤 ${state.studentName}` : '';
+            }
+            
+            // Progress Details aktualisieren falls sichtbar
+            updateProgressDetails();
+        }
+        
+        // ============ MAIN RENDER ============
+        function render() {
+            const content = document.getElementById('mainContent');
+            const moduleId = state.currentModule;
+            
+            if (moduleId === 'welcome') {
+                content.innerHTML = renderWelcome();
+            } else if (moduleId.endsWith('-quiz')) {
+                const realId = moduleId.replace('-quiz', '');
+                content.innerHTML = renderQuiz(realId);
+            } else if (moduleId.endsWith('-results')) {
+                const realId = moduleId.replace('-quiz-results', '').replace('-results', '');
+                content.innerHTML = renderResults(realId);
+            } else if (moduleId === 'final-test') {
+                content.innerHTML = renderFinalTest();
+            } else {
+                const module = modules.find(m => m.id === moduleId);
+                if (module && module.type === 'lesson') {
+                    content.innerHTML = renderLesson(module);
+                }
+            }
+            
+            renderSidebar();
+            updateProgress();
+        }
+        
+        // ============ NAME & CERTIFICATE ============
+        function submitName() {
+            const nameInput = document.getElementById('studentName');
+            const name = nameInput ? nameInput.value.trim() : '';
+            
+            if (name.length < 2) {
+                alert('Bitte gib deinen vollständigen Namen ein.');
+                return;
+            }
+            
+            state.studentName = name;
+            state.nameEntered = true;
+            render();
+        }
+        
+        function generateCertificate(score, correct, total) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const centerX = pageWidth / 2;
+            
+            // Hintergrund-Rahmen
+            doc.setDrawColor(99, 102, 241);
+            doc.setLineWidth(3);
+            doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+            
+            // Innerer Rahmen
+            doc.setDrawColor(16, 185, 129);
+            doc.setLineWidth(1);
+            doc.rect(15, 15, pageWidth - 30, pageHeight - 30);
+            
+            // Dekorative Ecken
+            doc.setFillColor(99, 102, 241);
+            doc.circle(20, 20, 3, 'F');
+            doc.circle(pageWidth - 20, 20, 3, 'F');
+            doc.circle(20, pageHeight - 20, 3, 'F');
+            doc.circle(pageWidth - 20, pageHeight - 20, 3, 'F');
+            
+            // Titel
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(32);
+            doc.setTextColor(99, 102, 241);
+            doc.text('ZERTIFIKAT', centerX, 38, { align: 'center' });
+            
+            // Untertitel
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Dieses Zertifikat wird verliehen an', centerX, 48, { align: 'center' });
+            
+            // Name des Studenten
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(26);
+            doc.setTextColor(30, 30, 30);
+            doc.text(state.studentName, centerX, 62, { align: 'center' });
+            
+            // Linie unter dem Namen
+            doc.setDrawColor(16, 185, 129);
+            doc.setLineWidth(0.5);
+            doc.line(centerX - 50, 66, centerX + 50, 66);
+            
+            // Beschreibungstext
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.setTextColor(60, 60, 60);
+            doc.text('für die erfolgreiche Teilnahme am', centerX, 76, { align: 'center' });
+            
+            // Kursname
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(99, 102, 241);
+            doc.text('Digitaltechnik Lernprogramm - Grundlagen der Informatik (GINF)', centerX, 86, { align: 'center' });
+            
+            // Kapitel-Ergebnisse Box (kompakter)
+            const lessonModules = modules.filter(m => m.type === 'lesson');
+            const boxStartY = 94;
+            const boxHeight = 28;
+            
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(30, boxStartY, pageWidth - 60, boxHeight, 2, 2, 'F');
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.2);
+            doc.roundedRect(30, boxStartY, pageWidth - 60, boxHeight, 2, 2, 'S');
+            
+            // Kapitel in einer Zeile
+            const startX = 35;
+            const colWidth = (pageWidth - 70) / (lessonModules.length + 1);
+            
+            doc.setFontSize(7);
+            
+            lessonModules.forEach((m, idx) => {
+                const x = startX + (idx * colWidth);
+                const moduleScore = state.quizScores[m.id];
+                const hasScore = moduleScore !== undefined;
+                
+                // Kapitelname (gekürzt)
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                const shortName = m.title.replace(/^\d+\.\s*/, '').substring(0, 12);
+                doc.text(shortName, x, boxStartY + 8);
+                
+                // Score
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                if (hasScore) {
+                    doc.setTextColor(moduleScore >= 60 ? 34 : 239, moduleScore >= 60 ? 197 : 68, moduleScore >= 60 ? 94 : 68);
+                    doc.text(moduleScore + '%', x, boxStartY + 17);
+                } else {
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('—', x, boxStartY + 17);
+                }
+                doc.setFontSize(7);
+            });
+            
+            // Abschlusstest-Spalte
+            const finalX = startX + (lessonModules.length * colWidth);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(99, 102, 241);
+            doc.text('ABSCHLUSS', finalX, boxStartY + 8);
+            doc.setFontSize(12);
+            doc.setTextColor(16, 185, 129);
+            doc.text(score + '%', finalX, boxStartY + 18);
+            
+            // Gesamtergebnis Box
+            doc.setFillColor(240, 245, 255);
+            doc.roundedRect(centerX - 55, boxStartY + boxHeight + 6, 110, 18, 2, 2, 'F');
+            doc.setDrawColor(99, 102, 241);
+            doc.setLineWidth(0.3);
+            doc.roundedRect(centerX - 55, boxStartY + boxHeight + 6, 110, 18, 2, 2, 'S');
+            
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.setTextColor(16, 185, 129);
+            doc.text('Abschlusstest bestanden: ' + score + '%', centerX, boxStartY + boxHeight + 14, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('(' + correct + ' von ' + total + ' Fragen richtig)', centerX, boxStartY + boxHeight + 21, { align: 'center' });
+            
+            // Datum
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('de-AT', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text('Ausgestellt am ' + dateStr, centerX, 165, { align: 'center' });
+            
+            // Institution
+            doc.setFontSize(9);
+            doc.text('BPI Mödling', centerX - 40, 173, { align: 'center' });
+            doc.text('GINF - Grundlagen der Informatik', centerX + 40, 173, { align: 'center' });
+            
+            // Footer Linie
+            doc.setDrawColor(200, 200, 200);
+            doc.line(30, 178, pageWidth - 30, 178);
+            
+            // Speichern
+            const fileName = 'Zertifikat_' + state.studentName.replace(/\s+/g, '_') + '_Digitaltechnik.pdf';
+            doc.save(fileName);
+            
+            return fileName;
+        }
+        
+        // Server-URL (anpassen falls nötig)
+        const SERVER_URL = ''; // Leer = relative URL (für Railway/Production)
+        
+        function getChapterResults() {
+            const lessonModules = modules.filter(m => m.type === 'lesson');
+            return lessonModules.map(m => ({
+                name: m.title.replace(/^\d+\.\s*/, ''),
+                score: state.quizScores[m.id] !== undefined ? state.quizScores[m.id] : null
+            }));
+        }
+        
+        async function sendCertificateViaServer(score, correct, total) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/send-certificate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentName: state.studentName,
+                        finalScore: score,
+                        correctAnswers: correct,
+                        totalQuestions: total,
+                        chapterResults: getChapterResults()
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    return { success: true, message: result.message };
+                } else {
+                    return { success: false, message: result.error || 'Unbekannter Fehler' };
+                }
+            } catch (error) {
+                console.log('Server nicht erreichbar, Fallback auf mailto:', error);
+                return { success: false, message: 'Server nicht erreichbar', fallback: true };
+            }
+        }
+        
+        async function sendCertificateWithFallback(score, correct, total) {
+            // Status-Anzeige
+            const statusDiv = document.createElement('div');
+            statusDiv.id = 'sendStatus';
+            statusDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); padding: 30px; border-radius: 15px; border: 2px solid var(--primary); z-index: 9999; text-align: center; min-width: 300px;';
+            statusDiv.innerHTML = `
+                <div style="font-size: 2em; margin-bottom: 15px;">📧</div>
+                <div style="margin-bottom: 10px;">Sende Zertifikat...</div>
+                <div style="color: var(--text-muted); font-size: 0.9em;">Bitte warten</div>
+            `;
+            document.body.appendChild(statusDiv);
+            
+            // Versuche Server-Versand
+            const result = await sendCertificateViaServer(score, correct, total);
+            
+            // Status entfernen
+            document.body.removeChild(statusDiv);
+            
+            if (result.success) {
+                alert('✅ ' + result.message);
+            } else if (result.fallback) {
+                // Fallback auf mailto
+                alert('ℹ️ Server nicht erreichbar.\n\nDas E-Mail-Programm wird geöffnet.\nBitte hängen Sie das PDF-Zertifikat manuell an.');
+                sendCertificateEmail(score, correct, total);
+            } else {
+                alert('❌ Fehler: ' + result.message);
+            }
+        }
+        
+        function sendCertificateEmail(score, correct, total) {
+            // Kapitel-Ergebnisse sammeln
+            const lessonModules = modules.filter(m => m.type === 'lesson');
+            let kapitelErgebnisse = '';
+            
+            lessonModules.forEach(m => {
+                const moduleScore = state.quizScores[m.id];
+                const hasScore = moduleScore !== undefined;
+                const status = hasScore ? (moduleScore >= 60 ? '✓' : '✗') : '-';
+                kapitelErgebnisse += `  ${status} ${m.title}: ${hasScore ? moduleScore + '%' : 'nicht absolviert'}\n`;
+            });
+            
+            // Durchschnitt berechnen
+            let totalKapitelScore = 0;
+            let countKapitel = 0;
+            lessonModules.forEach(m => {
+                if (state.quizScores[m.id] !== undefined) {
+                    totalKapitelScore += state.quizScores[m.id];
+                    countKapitel++;
+                }
+            });
+            const avgKapitel = countKapitel > 0 ? Math.round(totalKapitelScore / countKapitel) : 0;
+            
+            const subject = encodeURIComponent(`Zertifikat Digitaltechnik - ${state.studentName}`);
+            const body = encodeURIComponent(
+`Sehr geehrte Damen und Herren,
+
+hiermit übermittle ich mein Zertifikat für das Digitaltechnik Lernprogramm.
+
+══════════════════════════════════════
+TEILNEHMER-INFORMATIONEN
+══════════════════════════════════════
+Name: ${state.studentName}
+Datum: ${new Date().toLocaleDateString('de-AT')}
+
+══════════════════════════════════════
+KAPITEL-ERGEBNISSE
+══════════════════════════════════════
+${kapitelErgebnisse}
+  Durchschnitt Kapitel: ${avgKapitel}%
+
+══════════════════════════════════════
+ABSCHLUSSTEST
+══════════════════════════════════════
+  Ergebnis: ${score}% (${correct} von ${total} Fragen richtig)
+  Status: ${score >= 60 ? 'BESTANDEN ✓' : 'NICHT BESTANDEN'}
+
+══════════════════════════════════════
+
+Das PDF-Zertifikat ist dieser E-Mail angehängt.
+
+Mit freundlichen Grüßen
+${state.studentName}
+
+---
+Gesendet vom Digitaltechnik Lernprogramm
+BPI Mödling - GINF`
+            );
+            
+            window.open(`mailto:modic@akademie.bpi.ac.at?subject=${subject}&body=${body}`, '_blank');
+        }
+        
+        // ============ INIT ============
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables (NIEMALS committen!)
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build/Temp
+dist/
+build/
+tmp/
+temp/
+
+# Test
+coverage/
