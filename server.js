@@ -49,6 +49,10 @@ const EMAIL_CONFIG = {
     }
 };
 
+// **TEMPORÄR ZUM DEBUGGEN EINFÜGEN**
+console.log('DEBUG HOST:', process.env.SMTP_HOST);
+console.log('DEBUG USER:', process.env.SMTP_USER);
+
 const RECIPIENT_EMAIL = process.env.RECIPIENT_EMAIL || 'modic@akademie.bpi.ac.at';
 
 let transporter = null;
